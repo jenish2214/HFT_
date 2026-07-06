@@ -115,13 +115,17 @@ git push origin main
 
 1. [Vercel Dashboard](https://vercel.com/new) → Import your GitHub repo
 2. Set **Root Directory** to `frontend`
-3. Add environment variable:
+3. Add environment variable (required for production API):
 
    | Name | Value |
    |------|-------|
-   | `NEXT_PUBLIC_API_URL` | `https://hft-api.onrender.com` (your Render URL) |
+   | `API_URL` | `https://hft-api.onrender.com` (your Render backend URL) |
 
-4. Deploy. Open the Vercel URL — the dashboard will call your Render API.
+   The dashboard uses `/api` in the browser; Vercel rewrites `/api/*` to `API_URL`. You do **not** need `NEXT_PUBLIC_API_URL` unless you want the browser to call Render directly.
+
+4. Redeploy after saving env vars.
+
+**Alternative — deploy frontend on Render:** use the `hft-dashboard` service in `render.yaml` (API URL is wired automatically).
 
 **Optional WebSocket** (live streaming instead of polling):
 

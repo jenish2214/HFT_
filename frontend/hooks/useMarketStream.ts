@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { getApiBase, getWsUrl, useWebSocket } from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+function apiBase() {
+  return getApiBase();
+}
+
 /** WebSocket off by default — wallet extensions (MetaMask) hook WS and spam console warnings. */
-const USE_WS = process.env.NEXT_PUBLIC_USE_WS === "1";
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws";
+const USE_WS = useWebSocket();
 
 function pollIntervalMs(regular: boolean, live: boolean): number {
   if (regular) return 400;
@@ -40,7 +43,7 @@ function notifyHandlers(data: Record<string, unknown>) {
 
 async function fetchState(): Promise<boolean> {
   try {
-    const res = await fetch(`${API}/state`, { cache: "no-store" });
+    const res = await fetch(`${apiBase()}/state`, { cache: "no-store" });
     if (!res.ok) return false;
     notifyHandlers(await res.json());
     return true;
@@ -92,7 +95,7 @@ function connectWs(onMode: (mode: "ws" | "poll", ok: boolean) => void) {
   }
   closeWs();
 
-  const socket = new WebSocket(WS_URL);
+  const socket = new WebSocket(getWsUrl());
   ws = socket;
 
   socket.onopen = () => {
@@ -196,7 +199,7 @@ export function useMarketStream<T extends Record<string, unknown>>(
         ws.send(JSON.stringify(payload));
         return;
       }
-      fetch(`${API}/symbol`, {
+      fetch(`${apiBase()}/symbol`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbol: sym }),
@@ -212,7 +215,7 @@ export function useMarketStream<T extends Record<string, unknown>>(
         ws.send(JSON.stringify(payload));
         return;
       }
-      fetch(`${API}/chart/timeframe`, {
+      fetch(`${apiBase()}/chart/timeframe`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ timeframe: payload.timeframe }),
@@ -235,7 +238,7 @@ export function useMarketStream<T extends Record<string, unknown>>(
       return;
     }
 
-    fetch(`${API}/order`, {
+    fetch(`${apiBase()}/order`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(order),

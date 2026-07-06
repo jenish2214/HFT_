@@ -1,17 +1,15 @@
 /** @type {import('next').NextConfig} */
-const apiUrl = process.env.API_URL || "http://127.0.0.1:8000";
+const localApi = process.env.API_URL || "http://127.0.0.1:8000";
+const productionApi = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
 
 const nextConfig = {
   reactStrictMode: false,
   async rewrites() {
-    // Production (Vercel) talks to Render API via NEXT_PUBLIC_API_URL in the browser
-    if (process.env.VERCEL) {
-      return [];
-    }
+    const backend = productionApi || localApi;
     return [
       {
         source: "/api/:path*",
-        destination: `${apiUrl}/:path*`,
+        destination: `${backend.replace(/\/$/, "")}/:path*`,
       },
     ];
   },

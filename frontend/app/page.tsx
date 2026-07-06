@@ -14,6 +14,7 @@ import MarketStatusBar from "@/components/MarketStatusBar";
 import MarketDataPanel from "@/components/MarketDataPanel";
 import BloombergTerminalChart, { type ChartBar, type ChartTimeframe } from "@/components/BloombergTerminalChart";
 import { useMarketStream } from "@/hooks/useMarketStream";
+import { getApiBase } from "@/lib/api";
 import {
   mergeChartBars,
   sameBar,
@@ -263,14 +264,14 @@ export default function Dashboard() {
   const { connected, send } = useMarketStream(handleMessage);
 
   const refreshState = useCallback(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/state`, { cache: "no-store" })
+    fetch(`${getApiBase()}/state`, { cache: "no-store" })
       .then((r) => r.json())
       .then((state) => handleMessage(state))
       .catch(() => {});
   }, [handleMessage]);
 
   const cancelOrder = useCallback(async (orderId: number) => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/order/cancel`, {
+    await fetch(`${getApiBase()}/order/cancel`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ order_id: orderId }),
@@ -285,7 +286,7 @@ export default function Dashboard() {
     qty: number;
   }) => {
     return new Promise<{ ok: boolean; message: string }>((resolve) => {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/order`, {
+      fetch(`${getApiBase()}/order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(order),
@@ -341,7 +342,7 @@ export default function Dashboard() {
     setChartLoading(true);
     setChartTimeframe(tf);
     send({ action: "timeframe", timeframe: tf });
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/chart/timeframe`, {
+    fetch(`${getApiBase()}/chart/timeframe`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ timeframe: tf }),

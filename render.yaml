@@ -1,5 +1,4 @@
 # Render Blueprint — https://render.com/docs/blueprint-spec
-# Deploy: connect repo → New Blueprint → select render.yaml
 services:
   - type: web
     name: hft-api
@@ -17,3 +16,21 @@ services:
         value: 127.0.0.1
       - key: HFT_ENGINE_PORT
         value: "9001"
+
+  - type: web
+    name: hft-dashboard
+    runtime: node
+    rootDir: frontend
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: hft-api
+          property: host
