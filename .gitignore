@@ -1,0 +1,78 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+python/.venv/
+.venv/
+
+# Build outputs
+cpp/build/
+frontend/.next/
+frontend/out/
+dist/
+build/
+*.o
+*.a
+*.so
+*.dylib
+hft_engine
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+!frontend/.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+
+# TypeScript / Next.js
+*.tsbuildinfo
+frontend/tsconfig.tsbuildinfo
+next-env.d.ts
+
+# Logs & debug
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE / editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Vercel
+.vercel
+
+# Local tooling
+.cursor/
+*.local
+
+# SourceTree / git extras
+.git/sourcetreeconfig

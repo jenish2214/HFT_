@@ -1,0 +1,19 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy: connect repo → New Blueprint → select render.yaml
+services:
+  - type: web
+    name: hft-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: HFT_DEMO
+        value: "1"
+      - key: HFT_SYMBOL
+        value: AAPL
+      - key: HFT_ENGINE_HOST
+        value: 127.0.0.1
+      - key: HFT_ENGINE_PORT
+        value: "9001"
