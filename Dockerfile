@@ -9,6 +9,7 @@ WORKDIR /app
 
 COPY cpp/ cpp/
 COPY scripts/build.sh scripts/build.sh
+ENV CXX=g++
 RUN chmod +x scripts/build.sh && bash scripts/build.sh
 
 COPY python/requirements.txt python/requirements.txt

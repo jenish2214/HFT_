@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="$ROOT/cpp/build"
 mkdir -p "$BUILD_DIR"
 
-CXX="${CXX:-clang++}"
+CXX="${CXX:-g++}"
 FLAGS="-std=c++17 -O3 -Wall -Wextra -I$ROOT/cpp/include"
 
 echo "==> Building C++ matching engine with $CXX..."
