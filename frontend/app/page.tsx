@@ -17,7 +17,7 @@ import { useMarketStream } from "@/hooks/useMarketStream";
 import { getApiBase } from "@/lib/api";
 import {
   mergeChartBars,
-  sameBar,
+  mergeChartPatch,
   sameBook,
   sameTick,
   sameUser,
@@ -121,7 +121,6 @@ function applyTickUpdate(
     setMarket: (m: MarketSession | ((p: MarketSession | null) => MarketSession | null)) => void;
     setPriceHistory: (h: { ts: number; price: number }[] | ((p: { ts: number; price: number }[]) => { ts: number; price: number }[])) => void;
     setChartBars: (b: ChartBar[] | ((p: ChartBar[]) => ChartBar[])) => void;
-    setChartPatch: (b: ChartBar | null | ((p: ChartBar | null) => ChartBar | null)) => void;
     setPricePoint: (p: { ts: number; price: number } | null | ((prev: { ts: number; price: number } | null) => { ts: number; price: number } | null)) => void;
   },
 ) {
@@ -150,9 +149,8 @@ function applyTickUpdate(
 
   if (msg.chart_patch) {
     const patch = msg.chart_patch as ChartBar;
-    setters.setChartPatch((prev) => (prev && sameBar(prev, patch) ? prev : patch));
+    setters.setChartBars((prev) => mergeChartPatch(prev, patch));
   } else if (msg.chart_bars) {
-    setters.setChartPatch(null);
     setters.setChartBars((prev) => mergeChartBars(prev, msg.chart_bars as ChartBar[]));
   }
 
@@ -175,7 +173,6 @@ export default function Dashboard() {
   const [market, setMarket] = useState<MarketSession | null>(null);
   const [priceHistory, setPriceHistory] = useState<{ ts: number; price: number }[]>([]);
   const [chartBars, setChartBars] = useState<ChartBar[]>([]);
-  const [chartPatch, setChartPatch] = useState<ChartBar | null>(null);
   const [pricePoint, setPricePoint] = useState<{ ts: number; price: number } | null>(null);
   const [chartTimeframe, setChartTimeframe] = useState<ChartTimeframe>("1D");
   const [chartIntervalLabel, setChartIntervalLabel] = useState("1m");
@@ -205,7 +202,6 @@ export default function Dashboard() {
       setPriceHistory(msg.price_history as { ts: number; price: number }[]);
     }
     if (msg.chart_bars) {
-      setChartPatch(null);
       setChartBars(msg.chart_bars as ChartBar[]);
     }
     if (msg.chart_timeframe) setChartTimeframe(msg.chart_timeframe as ChartTimeframe);
@@ -223,7 +219,6 @@ export default function Dashboard() {
       applyFullSnapshot(msg);
       setSymbolLoading(false);
       setChartLoading(false);
-      setChartPatch(null);
       setPricePoint(null);
       setPendingOrders([]);
       setOrderHistory([]);
@@ -245,7 +240,6 @@ export default function Dashboard() {
         setMarket,
         setPriceHistory,
         setChartBars,
-        setChartPatch,
         setPricePoint,
       });
       syncMeta(msg);
@@ -329,7 +323,6 @@ export default function Dashboard() {
     setTrades([]);
     setPriceHistory([]);
     setChartBars([]);
-    setChartPatch(null);
     setPricePoint(null);
     setChartTimeframe("1D");
     setChartIntervalLabel("1m");
@@ -384,7 +377,6 @@ export default function Dashboard() {
             symbol={symbol}
             tick={tick}
             bars={chartBars}
-            chartPatch={chartPatch}
             market={market}
             timeframe={chartTimeframe}
             intervalLabel={chartIntervalLabel}
@@ -471,7 +463,6 @@ const MemoChart = memo(BloombergTerminalChart, (a, b) =>
   && a.intervalLabel === b.intervalLabel
   && a.loading === b.loading
   && a.bars === b.bars
-  && a.chartPatch === b.chartPatch
   && a.onTimeframeChange === b.onTimeframeChange
   && (a.tick?.price === b.tick?.price)
   && (a.tick?.change === b.tick?.change)

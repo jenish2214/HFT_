@@ -141,8 +141,11 @@ class YFinanceFeed:
             bars = []
             for idx, row in hist.iterrows():
                 ts = idx.timestamp() if hasattr(idx, "timestamp") else float(idx)
+                ts = int(ts)
+                if ts > 1_000_000_000_000:
+                    ts //= 1000
                 bars.append({
-                    "ts": int(ts),
+                    "ts": ts,
                     "open": round(float(row["Open"]), 2),
                     "high": round(float(row["High"]), 2),
                     "low": round(float(row["Low"]), 2),
@@ -159,14 +162,24 @@ class YFinanceFeed:
             ):
                 last = bars[-1]
                 if abs(last["close"] - self.price) > 0.001:
-                    bars.append({
-                        "ts": int(now),
-                        "open": last["close"],
-                        "high": round(max(last["close"], self.price), 2),
-                        "low": round(min(last["close"], self.price), 2),
-                        "close": self.price,
-                        "volume": self.volume or last["volume"],
-                    })
+                    live_ts = int(now)
+                    if live_ts <= last["ts"]:
+                        bars[-1] = {
+                            **last,
+                            "high": round(max(last["high"], self.price), 2),
+                            "low": round(min(last["low"], self.price), 2),
+                            "close": self.price,
+                            "volume": self.volume or last["volume"],
+                        }
+                    else:
+                        bars.append({
+                            "ts": live_ts,
+                            "open": last["close"],
+                            "high": round(max(last["close"], self.price), 2),
+                            "low": round(min(last["close"], self.price), 2),
+                            "close": self.price,
+                            "volume": self.volume or last["volume"],
+                        })
 
             self.chart_bars = bars[-tf["max_bars"] :]
             self.last_chart_fetch = now

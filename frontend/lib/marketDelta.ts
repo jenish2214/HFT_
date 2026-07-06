@@ -64,14 +64,26 @@ export function sameBar(a: ChartBar, b: ChartBar): boolean {
 
 /** Merge last chart bar or append — returns prev if unchanged. */
 export function mergeChartPatch(prev: ChartBar[], patch: ChartBar): ChartBar[] {
-  if (prev.length === 0) return [patch];
+  const patchTs = normalizeChartTs(patch.ts);
+  if (patchTs <= 0) return prev;
+  const normalized: ChartBar = { ...patch, ts: patchTs };
+
+  if (prev.length === 0) return [normalized];
   const last = prev[prev.length - 1];
-  if (last.ts === patch.ts) {
-    if (sameBar(last, patch)) return prev;
-    return [...prev.slice(0, -1), patch];
+  const lastTs = normalizeChartTs(last.ts);
+  if (lastTs === patchTs) {
+    if (sameBar(last, normalized)) return prev;
+    return [...prev.slice(0, -1), normalized];
   }
-  if (patch.ts > last.ts) return [...prev, patch];
+  if (patchTs > lastTs) return [...prev, normalized];
   return prev;
+}
+
+function normalizeChartTs(ts: unknown): number {
+  let n = Math.floor(Number(ts));
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  if (n > 1e12) n = Math.floor(n / 1000);
+  return n;
 }
 
 /** Append single price point — returns prev if duplicate ts. */

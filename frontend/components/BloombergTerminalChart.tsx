@@ -9,7 +9,6 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 import type { MarketSession, TickInfo } from "@/app/page";
-import { sameBar } from "@/lib/marketDelta";
 
 export interface ChartBar {
   ts: number;
@@ -35,7 +34,6 @@ interface Props {
   symbol: string;
   tick: TickInfo | null;
   bars: ChartBar[];
-  chartPatch?: ChartBar | null;
   market: MarketSession | null;
   timeframe: ChartTimeframe;
   intervalLabel: string;
@@ -61,9 +59,16 @@ const CHART_THEME = {
   down: "#ef5350",
 };
 
+function normalizeTs(ts: unknown): number {
+  let n = Math.floor(Number(ts));
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  if (n > 1e12) n = Math.floor(n / 1000);
+  return n;
+}
+
 function toChartTime(ts: number): UTCTimestamp {
-  const sec = Math.floor(Number(ts));
-  if (!Number.isFinite(sec) || sec <= 0) return 0 as UTCTimestamp;
+  const sec = normalizeTs(ts);
+  if (sec <= 0) return 0 as UTCTimestamp;
   return sec as UTCTimestamp;
 }
 
@@ -72,9 +77,9 @@ function sanitizeBars(bars: ChartBar[]): ChartBar[] {
   const seen = new Set<number>();
   const out: ChartBar[] = [];
 
-  for (const bar of [...bars].sort((a, b) => a.ts - b.ts)) {
-    const ts = Math.floor(Number(bar.ts));
-    if (!Number.isFinite(ts) || ts <= 0 || seen.has(ts)) continue;
+  for (const bar of [...bars].sort((a, b) => normalizeTs(a.ts) - normalizeTs(b.ts))) {
+    const ts = normalizeTs(bar.ts);
+    if (ts <= 0 || seen.has(ts)) continue;
 
     const open = Number(bar.open);
     const high = Number(bar.high);
@@ -146,7 +151,6 @@ export default function BloombergTerminalChart({
   symbol,
   tick,
   bars,
-  chartPatch = null,
   market,
   timeframe,
   intervalLabel,
@@ -158,8 +162,9 @@ export default function BloombergTerminalChart({
   const candleRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const volumeRef = useRef<ISeriesApi<"Histogram"> | null>(null);
   const barsLenRef = useRef(0);
+  const lastBarTsRef = useRef(0);
+  const symbolRef = useRef(symbol);
   const timeframeRef = useRef(timeframe);
-  const lastPatchRef = useRef<ChartBar | null>(null);
 
   const [crosshair, setCrosshair] = useState<CrosshairInfo | null>(null);
   const [barCount, setBarCount] = useState(0);
@@ -308,6 +313,13 @@ export default function BloombergTerminalChart({
     const chart = chartRef.current;
     if (!candles || !volume || !chart) return;
 
+    if (symbolRef.current !== symbol || timeframeRef.current !== timeframe) {
+      symbolRef.current = symbol;
+      timeframeRef.current = timeframe;
+      barsLenRef.current = 0;
+      lastBarTsRef.current = 0;
+    }
+
     const clean = sanitizeBars(bars);
 
     if (clean.length === 0) {
@@ -318,17 +330,38 @@ export default function BloombergTerminalChart({
         // chart may be mid-dispose
       }
       barsLenRef.current = 0;
+      lastBarTsRef.current = 0;
       setBarCount(0);
       return;
     }
 
-    try {
-      const prevLen = barsLenRef.current;
-      const candleData = clean.map(toCandle);
-      const volumeData = clean.map(toVolume);
-      const tfChanged = prevLen > 0 && clean.length !== prevLen && clean.length < prevLen - 5;
+    const candleData = clean.map(toCandle);
+    const volumeData = clean.map(toVolume);
+    const prevLen = barsLenRef.current;
+    const prevLastTs = lastBarTsRef.current;
+    const lastTs = clean[clean.length - 1].ts;
+    const anchorTs = prevLen > 0 ? clean[Math.min(prevLen, clean.length) - 1]?.ts ?? 0 : 0;
 
-      if (prevLen === 0 || tfChanged || loading) {
+    const fullReset =
+      prevLen === 0
+      || loading
+      || clean.length < prevLen - 1
+      || lastTs < prevLastTs
+      || (prevLen > 0 && anchorTs !== prevLastTs);
+
+    const appendOnly =
+      !fullReset
+      && clean.length > prevLen
+      && anchorTs === prevLastTs;
+
+    const patchLast =
+      !fullReset
+      && !appendOnly
+      && clean.length === prevLen
+      && lastTs === prevLastTs;
+
+    try {
+      if (fullReset) {
         candles.setData(candleData);
         volume.setData(volumeData);
         const count = Math.min(timeframe === "1D" ? 90 : 50, clean.length);
@@ -336,14 +369,14 @@ export default function BloombergTerminalChart({
           from: Math.max(0, clean.length - count),
           to: clean.length,
         });
-      } else if (clean.length === prevLen && timeframe === "1D" && isOpen) {
-        candles.update(candleData[candleData.length - 1]);
-        volume.update(volumeData[volumeData.length - 1]);
-      } else if (clean.length > prevLen) {
+      } else if (appendOnly) {
         for (const bar of clean.slice(prevLen)) {
           candles.update(toCandle(bar));
           volume.update(toVolume(bar));
         }
+      } else if (patchLast) {
+        candles.update(candleData[candleData.length - 1]);
+        volume.update(volumeData[volumeData.length - 1]);
       } else {
         candles.setData(candleData);
         volume.setData(volumeData);
@@ -351,16 +384,12 @@ export default function BloombergTerminalChart({
       }
 
       barsLenRef.current = clean.length;
+      lastBarTsRef.current = lastTs;
       setBarCount(clean.length);
       setChartError(null);
-      if (prevLen === 0 || tfChanged || loading) {
-        lastPatchRef.current = null;
-      }
     } catch (err) {
       console.error("[chart] data update failed:", err);
       try {
-        const candleData = clean.map(toCandle);
-        const volumeData = clean.map(toVolume);
         candles.setData(candleData);
         volume.setData(volumeData);
         const count = Math.min(timeframe === "1D" ? 90 : 50, clean.length);
@@ -369,33 +398,14 @@ export default function BloombergTerminalChart({
           to: clean.length,
         });
         barsLenRef.current = clean.length;
+        lastBarTsRef.current = lastTs;
         setBarCount(clean.length);
+        setChartError(null);
       } catch {
         if (mountedRef.current) setChartError("Chart data error — try another timeframe");
       }
     }
-  }, [bars, isOpen, loading, timeframe]);
-
-  // Incremental last-candle patch (price momentum only)
-  useEffect(() => {
-    if (!chartPatch) return;
-    if (lastPatchRef.current && sameBar(lastPatchRef.current, chartPatch)) return;
-
-    const candles = candleRef.current;
-    const volume = volumeRef.current;
-    if (!candles || !volume) return;
-
-    const bar = sanitizeBars([chartPatch])[0];
-    if (!bar) return;
-
-    try {
-      candles.update(toCandle(bar));
-      volume.update(toVolume(bar));
-      lastPatchRef.current = bar;
-    } catch {
-      // fall back to full bars sync on next update
-    }
-  }, [chartPatch, isOpen, timeframe]);
+  }, [bars, loading, timeframe, symbol, fitFixed]);
 
   const marketLabel =
     market?.status === "open" ? "REGULAR SESSION"
