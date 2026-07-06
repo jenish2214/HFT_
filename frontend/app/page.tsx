@@ -185,6 +185,7 @@ export default function Dashboard() {
   const [pendingOrders, setPendingOrders] = useState<UserOrder[]>([]);
   const [orderHistory, setOrderHistory] = useState<UserOrder[]>([]);
   const [watchlist, setWatchlist] = useState<WatchRow[]>([]);
+  const [mobileTab, setMobileTab] = useState<"chart" | "market" | "trade">("chart");
 
   const tickMetaRef = useRef({ ts: 0 });
 
@@ -371,13 +372,13 @@ export default function Dashboard() {
       <MarketStatusBar market={market} lastUpdateTs={lastUpdateTs} />
 
       <div className="desk">
-        <div className="desk-col desk-col-watch">
+        <div className={`desk-col desk-col-watch${mobileTab === "market" ? " desk-mobile-active" : ""}`}>
           <BloombergWatchlist rows={watchlist} active={symbol} onSelect={changeSymbol} />
           <MemoOrderBook book={book} symbol={symbol} />
           <MemoMarketData tick={tick} lastUpdateTs={lastUpdateTs} isLive={market?.is_regular_hours} />
         </div>
 
-        <div className="desk-col desk-col-center">
+        <div className={`desk-col desk-col-center${mobileTab === "chart" ? " desk-mobile-active" : ""}`}>
           <MemoChart
             symbol={symbol}
             tick={tick}
@@ -393,7 +394,7 @@ export default function Dashboard() {
           <MemoTradeTape trades={trades} isLive={market?.is_regular_hours} />
         </div>
 
-        <div className="desk-col">
+        <div className={`desk-col desk-col-trade${mobileTab === "trade" ? " desk-mobile-active" : ""}`}>
           <MemoPortfolio user={user} />
           <MemoOrderTicket
             symbol={symbol}
@@ -407,6 +408,30 @@ export default function Dashboard() {
           />
         </div>
       </div>
+
+      <nav className="mobile-desk-nav" aria-label="Desk panels">
+        <button
+          type="button"
+          className={`mobile-desk-tab${mobileTab === "chart" ? " mobile-desk-tab-active" : ""}`}
+          onClick={() => setMobileTab("chart")}
+        >
+          Chart
+        </button>
+        <button
+          type="button"
+          className={`mobile-desk-tab${mobileTab === "market" ? " mobile-desk-tab-active" : ""}`}
+          onClick={() => setMobileTab("market")}
+        >
+          Market
+        </button>
+        <button
+          type="button"
+          className={`mobile-desk-tab${mobileTab === "trade" ? " mobile-desk-tab-active" : ""}`}
+          onClick={() => setMobileTab("trade")}
+        >
+          Trade
+        </button>
+      </nav>
 
       <BloombergTicker tick={tick} market={market} symbol={symbol} />
     </div>
