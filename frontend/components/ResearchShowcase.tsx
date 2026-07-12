@@ -7,32 +7,23 @@ import { motion } from "framer-motion";
 import { EASE_OUT } from "@/lib/siteMotion";
 
 const RESEARCH_PURPOSE = [
-  {
-    title: "Understand markets",
-    text: "Move from raw prices to structured insight — sector context, fundamentals, and live session data in one flow.",
-  },
-  {
-    title: "Validate ideas",
-    text: "Test hypotheses with charts, indicators, and company reports before committing to a view.",
-  },
-  {
-    title: "Act with clarity",
-    text: "Use the terminal desk to monitor quotes, depth, and research profiles without switching tools.",
-  },
+  { title: "Explore", text: "Quotes, sectors, and fundamentals." },
+  { title: "Analyze", text: "Charts and research profiles." },
+  { title: "Monitor", text: "Terminal watchlists and depth." },
 ];
 
 const PATTERN_SIGNALS = [
-  { label: "Trend continuation", prob: 72, desc: "Price holds above SMA with rising volume" },
-  { label: "Mean reversion", prob: 58, desc: "RSI stretch with Bollinger band touch" },
-  { label: "Breakout confirmation", prob: 64, desc: "Range break + MACD momentum align" },
-  { label: "Sector relative strength", prob: 81, desc: "Symbol outperforms peer basket" },
+  { label: "Trend continuation", prob: 72, desc: "Price above moving averages" },
+  { label: "Mean reversion", prob: 58, desc: "RSI stretch" },
+  { label: "Breakout", prob: 64, desc: "MACD momentum" },
+  { label: "Relative strength", prob: 81, desc: "Vs peer basket" },
 ];
 
 const TERMINAL_FEATURES = [
-  { title: "Price & depth", text: "Candlesticks, Level II book, time & sales" },
-  { title: "Fundamentals", text: "Income, balance sheet, cash flow tabs" },
-  { title: "Monitor", text: "Multi-asset watchlist with live filters" },
-  { title: "Quant lab", text: "Momentum study levels, factors, Monte Carlo on /research" },
+  { title: "Price & depth", text: "Candlesticks and order book" },
+  { title: "Fundamentals", text: "Financial statements" },
+  { title: "Monitor", text: "Watchlist" },
+  { title: "Research", text: "Factors and momentum on /research" },
 ];
 
 function ProbBar({ label, prob, desc, delay }: {
@@ -63,11 +54,8 @@ export default function ResearchShowcase() {
     <>
       <section className="site-section site-section-wide site-section-muted">
         <RevealOnScroll>
-          <h2 className="site-section-title">Purpose of research</h2>
-          <p className="site-section-lead">
-            Orion Alpha exists to turn market noise into research you can trust —
-            structured, repeatable, and grounded in data.
-          </p>
+          <h2 className="site-section-title">Research</h2>
+          <p className="site-section-lead">Structured market analysis in one workflow.</p>
         </RevealOnScroll>
         <div className="site-purpose-grid">
           {RESEARCH_PURPOSE.map((item, i) => (
@@ -82,11 +70,8 @@ export default function ResearchShowcase() {
 
       <section className="site-section site-section-wide">
         <RevealOnScroll>
-          <h2 className="site-section-title">Pattern study scores (demo)</h2>
-          <p className="site-section-lead">
-            Classroom exercises with rule-based technical scores — for learning setups,
-            not price predictions or trade recommendations.
-          </p>
+          <h2 className="site-section-title">Pattern scores</h2>
+          <p className="site-section-lead">Technical setup scores on the research page.</p>
         </RevealOnScroll>
         <div className="site-prob-grid">
           {PATTERN_SIGNALS.map((s, i) => (
@@ -95,12 +80,10 @@ export default function ResearchShowcase() {
         </div>
       </section>
 
-      <section className="site-section site-section-wide site-section-muted">
+      <section className="site-section site-section-wide site-section-muted site-section-center">
         <RevealOnScroll>
-          <h2 className="site-section-title">Financial research terminal</h2>
-          <p className="site-section-lead">
-            Professional desk functions for deep research — from live quotes to full fundamentals.
-          </p>
+          <h2 className="site-section-title">Terminal</h2>
+          <p className="site-section-lead">Live desk tools.</p>
         </RevealOnScroll>
         <div className="site-terminal-grid">
           {TERMINAL_FEATURES.map((f, i) => (
@@ -111,10 +94,9 @@ export default function ResearchShowcase() {
           ))}
         </div>
         <RevealOnScroll delay={0.1}>
-          <div className="site-hero-actions site-cta-actions" style={{ marginTop: 32 }}>
-            <Link href="/research" className="site-btn site-btn-primary">View Quant Research</Link>
-            <Link href="/terminal" className="site-btn site-btn-outline">Launch Terminal</Link>
-            <Link href="/chart" className="site-btn site-btn-outline">Open Charts</Link>
+          <div className="site-section-actions">
+            <Link href="/research" className="site-btn site-btn-primary">Research</Link>
+            <Link href="/terminal" className="site-btn site-btn-outline">Terminal</Link>
           </div>
         </RevealOnScroll>
       </section>

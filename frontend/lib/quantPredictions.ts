@@ -43,15 +43,15 @@ export function resolvePredictions(data: QuantResearchData, primary: string): Qu
     confidence: Math.round(confidence),
     headline:
       outlook === "Bullish"
-        ? `${primary} — demo scorecard skews positive (study exercise only)`
+        ? `${primary} — scores skew positive`
         : outlook === "Bearish"
-          ? `${primary} — demo scorecard skews defensive (study exercise only)`
-          : `${primary} — mixed demo scores; for learning, not trading decisions`,
+          ? `${primary} — scores skew defensive`
+          : `${primary} — mixed scores`,
     bullish_score: Math.round(bullishScore * 10) / 10,
     scenarios: [
-      { label: "Higher", probability: up, hint: "Demo exercise: price above current in simulation" },
-      { label: "Range", probability: flat, hint: "Demo exercise: sideways mixed-factor scenario" },
-      { label: "Lower", probability: down, hint: "Demo exercise: pullback / vol expansion study" },
+      { label: "Higher", probability: up, hint: "Upside scenario weight" },
+      { label: "Range", probability: flat, hint: "Sideways scenario weight" },
+      { label: "Lower", probability: down, hint: "Downside scenario weight" },
     ],
     signals: patterns,
     models: [

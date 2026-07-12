@@ -183,8 +183,30 @@ html {
 }
 
 .site-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
   gap: 10px;
   margin-top: 32px;
+}
+
+.site-section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.site-section-center {
+  text-align: center;
+}
+
+.site-section-center .site-section-lead {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ── Buttons ── */
@@ -1632,6 +1654,13 @@ html {
 
 @media (min-width: 900px) {
   .qr-edu-grid { grid-template-columns: 1.1fr 1fr 0.95fr; }
+  .qr-edu-grid-two { grid-template-columns: 1fr 1fr; }
+}
+
+.qr-edu-grid-two {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
 }
 
 .qr-edu-scenarios,
@@ -2091,7 +2120,11 @@ html {
 }
 
 .home-hero-simple-actions {
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
+  width: 100%;
   margin-top: 28px;
 }
 
@@ -2152,20 +2185,38 @@ html {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
+  max-width: 720px;
+  margin: 0 auto;
+  justify-items: center;
 }
 
 @media (min-width: 640px) {
   .home-hero-paths {
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
+    max-width: 840px;
+  }
+}
+
+.home-hero-paths > div {
+  width: 100%;
+  max-width: 260px;
+}
+
+@media (min-width: 640px) {
+  .home-hero-paths > div {
+    max-width: none;
   }
 }
 
 .home-hero-path-card {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 4px;
   padding: 16px 18px;
+  width: 100%;
   text-decoration: none;
   color: inherit;
   background: var(--site-bg);

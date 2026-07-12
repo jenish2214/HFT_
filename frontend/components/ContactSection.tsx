@@ -8,21 +8,16 @@ export default function ContactSection({ id = "contact" }: { id?: string }) {
   return (
     <section id={id} className="site-section site-section-wide site-contact">
       <RevealOnScroll>
-        <h2 className="site-section-title">Contact Us</h2>
+        <h2 className="site-section-title">Contact</h2>
         <div className="site-contact-card">
-          <p className="site-contact-brand">{PRODUCT_NAME} — Education & Support</p>
-          <p className="site-contact-company">Made by {COMPANY_NAME}</p>
-          <p className="site-contact-text">
-            Questions about the learning lab, local setup, or data delays on deploy?
-            Email us — we typically respond for platform and API issues.
-          </p>
+          <p className="site-contact-brand">{PRODUCT_NAME}</p>
+          <p className="site-contact-company">{COMPANY_NAME}</p>
           <a href={`mailto:${SUPPORT_EMAIL}`} className="site-contact-email mono">
             {SUPPORT_EMAIL}
           </a>
           <div className="site-contact-links">
-            <a href={`mailto:${SUPPORT_EMAIL}`} className="site-btn site-btn-primary">Email Support</a>
-            <Link href="/research" className="site-btn site-btn-outline">Research Lab</Link>
-            <Link href="/about" className="site-btn site-btn-outline">About Us</Link>
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="site-btn site-btn-primary">Email</a>
+            <Link href="/research" className="site-btn site-btn-outline">Research</Link>
           </div>
         </div>
       </RevealOnScroll>

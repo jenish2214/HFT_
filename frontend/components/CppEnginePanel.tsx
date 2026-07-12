@@ -18,13 +18,13 @@ export default function CppEnginePanel({ stats, connected }: Props) {
   return (
     <div className="panel cpp-engine-panel">
       <div className="panel-head">
-        <span className="panel-title">C++ Matching Engine</span>
+        <span className="panel-title">Matching Engine</span>
         <span className={`cpp-engine-dot${connected ? " cpp-engine-live" : ""}`} title={connected ? "Engine linked" : "Offline"} />
       </div>
       <div className="panel-body cpp-engine-body mono">
         <div className="cpp-engine-row">
           <span className="cpp-engine-label">Order Book</span>
-          <span className="cpp-engine-val">Level II · C++</span>
+          <span className="cpp-engine-val">Level II</span>
         </div>
         <div className="cpp-engine-row">
           <span className="cpp-engine-label">Avg Latency</span>
@@ -38,7 +38,7 @@ export default function CppEnginePanel({ stats, connected }: Props) {
           <span className="cpp-engine-label">Fills</span>
           <span className="cpp-engine-val">{stats?.total_trades?.toLocaleString() ?? "—"}</span>
         </div>
-        <div className="cpp-engine-tag">HFT Engine · port 9001</div>
+        <div className="cpp-engine-tag">Engine</div>
       </div>
     </div>
   );

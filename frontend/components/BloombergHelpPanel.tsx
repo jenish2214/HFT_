@@ -24,7 +24,7 @@ export default function BloombergHelpPanel({ onClose }: Props) {
       </div>
       <div className="panel-body bb-help-body">
         <p className="bb-help-intro">
-          <strong>{PRODUCT_NAME}</strong> — {PRODUCT_TAGLINE}. Live stream from the Python API;
+          <strong>{PRODUCT_NAME}</strong> — {PRODUCT_TAGLINE}. Live market stream;
           {universeTotal} instruments across equities, crypto, commodities, indices, FX, and rates.
         </p>
 

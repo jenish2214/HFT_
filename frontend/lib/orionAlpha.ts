@@ -1,15 +1,11 @@
 /** Orion Alpha — product identity & terminal feature catalog */
 
 export const PRODUCT_NAME = "Orion Alpha";
-export const PRODUCT_TAGLINE = "Markets Learning & Research Lab";
-export const PRODUCT_MOTTO = "Learn Markets";
+export const PRODUCT_TAGLINE = "Markets Research";
+export const PRODUCT_MOTTO = "Research";
 export const PRODUCT_VERSION = "1.0";
 export const COMPANY_NAME = "BSj infotech";
 export const SUPPORT_EMAIL = "bsjinfotech1@gmail.com";
-
-/** Shown on research and footer — not investment advice. */
-export const EDUCATION_DISCLAIMER =
-  "For education and learning only. All scores, levels, and simulations are demo exercises — not investment advice, price targets, or predictions.";
 
 export const ASSET_CLASS_SHORT: Record<string, string> = {
   equity: "EQ",
@@ -88,7 +84,7 @@ export const ORION_FEATURES = [
     id: "quant",
     key: "RESEARCH",
     title: "Quant Research Page",
-    details: "/research — learn factor models, CAPM, Monte Carlo simulations, and momentum study levels (demo only).",
+    details: "/research — factors, risk, charts, and company profiles.",
   },
   {
     id: "wei",

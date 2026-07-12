@@ -31,7 +31,7 @@ export default function DemoWalkthrough({ tick, book, strategy }: Props) {
     {
       n: 3,
       title: "Someone hits our quote",
-      body: "External trader sends MARKET order → C++ engine matches instantly",
+      body: "External trader sends MARKET order → engine matches",
     },
     {
       n: 4,
@@ -42,7 +42,7 @@ export default function DemoWalkthrough({ tick, book, strategy }: Props) {
 
   return (
     <div className="panel">
-      <div className="panel-title">Example — One HFT Cycle</div>
+      <div className="panel-title">Example cycle</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {steps.map((s) => (
           <div key={s.n} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>

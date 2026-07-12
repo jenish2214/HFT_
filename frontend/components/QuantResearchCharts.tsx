@@ -323,10 +323,10 @@ function MonteCarloPanel({ data, primary }: { data: QuantResearchData; primary: 
 
   return (
     <ChartCard
-      code="MC-GBM"
-      title="Monte Carlo simulation"
-      subtitle="Geometric Brownian motion · 252-day horizon · 10k paths"
-      tags={[primary, "GBM", "Risk-neutral drift from hist vol"]}
+      code="MC"
+      title="Price simulation"
+      subtitle="1-year range from historical volatility"
+      tags={[primary]}
       kpis={kpis}
       footnote={`Universe EW portfolio: ${data.portfolio.equal_weight.return_pct}% ret · ${data.portfolio.equal_weight.vol_pct}% vol · Sharpe ${data.portfolio.equal_weight.sharpe}`}
       wide

@@ -35,7 +35,7 @@ export default function LatencyPanel({ history, avgNs }: Props) {
           ))}
         </div>
         <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 8 }}>
-          C++ matching engine · sub-µs target in production HFT
+          Order matching latency
         </div>
       </div>
     </div>

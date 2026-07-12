@@ -139,12 +139,12 @@ export const MARKET_DOC_SECTIONS: DocSection[] = [
       {
         id: "factor-engine",
         term: "Factor engine",
-        body: "Python module scoring momentum, reversal, low-volatility, and trend factors, then z-scoring across the universe to build composite alpha. Shown in the factor table on /research.",
+        body: "Scores momentum, reversal, low-volatility, and trend factors across the research universe.",
       },
       {
         id: "composite-alpha",
         term: "Composite alpha score",
-        body: "Average of standardized factor z-scores for each symbol. Used to rank the demo universe — higher = stronger factor stack in the historical window.",
+        body: "Average of standardized factor scores. Ranks symbols in the research table.",
       },
       {
         id: "factor-ic",
@@ -161,7 +161,7 @@ export const MARKET_DOC_SECTIONS: DocSection[] = [
       {
         id: "monte-carlo",
         term: "Monte Carlo simulation",
-        body: "Runs many random price paths using assumed drift (μ) and volatility (σ). Orion Alpha uses Geometric Brownian Motion (GBM) with ~1,500 paths for a 1-year horizon in the quant lab.",
+        body: "Runs many random price paths from historical drift and volatility.",
       },
       {
         id: "gbm",
@@ -212,40 +212,8 @@ export const MARKET_DOC_SECTIONS: DocSection[] = [
       },
       {
         id: "momentum-buy-lab",
-        term: "Momentum study buy level",
-        body: "Educational price level from SMA rules: strong momentum → study SMA20 pullback; moderate → SMA50; weak → repair zone below trend. Not a live order recommendation.",
-      },
-    ],
-  },
-  {
-    id: "platform",
-    title: "Platform & stack",
-    intro: "How Orion Alpha is built — for learners exploring systems design.",
-    terms: [
-      {
-        id: "cpp-engine",
-        term: "C++ matching engine",
-        body: "Demo HFT-style order book on port 9001. Matches limit/market orders with price-time priority and reports latency stats. Powers the terminal depth view in local dev.",
-      },
-      {
-        id: "python-api",
-        term: "Python FastAPI backend",
-        body: "Serves quotes, charts, company reports, and /research/quant. Browser calls go through Next.js /api proxy for security (CSP connect-src 'self').",
-      },
-      {
-        id: "api-proxy",
-        term: "/api proxy",
-        body: "Same-origin route that forwards allowed paths to the backend. Prevents browsers from calling localhost:8000 directly and keeps CSP strict.",
-      },
-      {
-        id: "yfinance",
-        term: "Market data sources",
-        body: "Historical prices and fundamentals often come from yfinance / yahooquery in dev. Deployed environments may see delays or partial data — run ./scripts/run.sh locally for full lab exercises.",
-      },
-      {
-        id: "education-only",
-        term: "Education-only disclaimer",
-        body: "All lab output is for learning: definitions, demos, and simulations. Not investment advice, solicitation, or guaranteed performance.",
+        term: "Momentum buy level",
+        body: "Price level from SMA rules: strong momentum uses SMA20; moderate uses SMA50; weak uses a lower repair zone.",
       },
     ],
   },

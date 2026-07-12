@@ -3,7 +3,7 @@ import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
 export const metadata = {
   title: `Docs — ${PRODUCT_NAME}`,
-  description: "Market glossary — Monte Carlo, CAPM, momentum, risk metrics, pattern scores, and platform definitions for learning.",
+  description: `Market definitions and glossary for ${PRODUCT_NAME}.`,
 };
 
 export default function DocsPage() {

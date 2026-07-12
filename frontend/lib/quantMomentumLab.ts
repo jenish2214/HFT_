@@ -24,7 +24,7 @@ export function resolveMomentumLab(data: QuantResearchData, primary: string): Qu
   const mom63 = factor?.momentum_63d ?? 0;
 
   if (current == null || sma20 == null || sma50 == null) {
-    return { data_found: false, disclaimer: "For education only. Not investment advice." };
+    return { data_found: false };
   }
 
   let regime = "Weak / below trend";
@@ -35,14 +35,14 @@ export function resolveMomentumLab(data: QuantResearchData, primary: string): Qu
   if (current > sma20 && sma20 > sma50 && mom63 > 0.03) {
     regime = "Strong momentum";
     studyBuy = sma20;
-    lesson = `Strong momentum uptrend: study pullbacks to SMA20 ($${sma20.toFixed(2)}) — learning exercise only.`;
+    lesson = `Strong momentum — study level near SMA20 ($${sma20.toFixed(2)}).`;
   } else if (current > sma50 && mom63 > 0) {
     regime = "Moderate momentum";
     studyBuy = sma50;
-    lesson = `Moderate momentum: map trend support at SMA50 ($${sma50.toFixed(2)}) when price holds above it.`;
+    lesson = `Moderate momentum — study level near SMA50 ($${sma50.toFixed(2)}).`;
   } else {
     studyBuy = Math.min(sma50, current * 0.97);
-    lesson = `Weaker momentum — study repair near $${studyBuy.toFixed(2)} before paper-trade sizing.`;
+    lesson = `Weaker momentum — study level near $${studyBuy.toFixed(2)}.`;
   }
 
   const distPct = Math.round(((studyBuy - current) / current) * 10000) / 100;
@@ -67,7 +67,6 @@ export function resolveMomentumLab(data: QuantResearchData, primary: string): Qu
       },
     ],
     lesson,
-    disclaimer: "For education only. Not investment advice or a price forecast.",
   };
 }
 

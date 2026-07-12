@@ -7,27 +7,15 @@ import { EASE_OUT } from "@/lib/siteMotion";
 import { PRODUCT_NAME, PRODUCT_MOTTO, PRODUCT_TAGLINE } from "@/lib/orionAlpha";
 
 const PURPOSE = [
-  {
-    step: "01",
-    title: "Learn how markets work",
-    text: "Move from raw prices to structured lessons — sector context, fundamentals, and how data flows through a research stack.",
-  },
-  {
-    step: "02",
-    title: "Practice with demos",
-    text: "Run factor models, momentum exercises, and chart studies in a sandbox — no live trading advice.",
-  },
-  {
-    step: "03",
-    title: "Build your toolkit",
-    text: "Explore quotes, depth, and research labs to sharpen skills before real capital is at risk.",
-  },
+  { step: "01", title: "Explore", text: "Quotes, sectors, and fundamentals in one place." },
+  { step: "02", title: "Analyze", text: "Charts, research, and company reports." },
+  { step: "03", title: "Monitor", text: "Watchlists and market depth on the terminal." },
 ];
 
 const PATHS = [
-  { href: "/research", code: "QR", title: "Research Lab", desc: "Momentum & factor exercises" },
-  { href: "/terminal", code: "DESK", title: "Terminal", desc: "Live quotes & market depth" },
-  { href: "/chart", code: "GP", title: "Charts", desc: "Full-screen technical analysis" },
+  { href: "/research", code: "QR", title: "Research", desc: "Factors & momentum" },
+  { href: "/terminal", code: "DESK", title: "Terminal", desc: "Live desk" },
+  { href: "/chart", code: "GP", title: "Charts", desc: "Indicators" },
 ];
 
 const cardReveal = {
@@ -52,17 +40,11 @@ export default function HomeFinanceHub() {
         <FadeIn delay={0.16}>
           <p className="home-hero-simple-lead">{PRODUCT_TAGLINE}</p>
         </FadeIn>
-        <FadeIn delay={0.24}>
-          <p className="home-hero-simple-desc">
-            An education-first markets lab for students and self-directed learners.
-            Explore demos, study momentum and factors, and practice analysis — not predictions or trade calls.
-          </p>
-        </FadeIn>
         <FadeIn delay={0.32}>
           <div className="site-hero-actions home-hero-simple-actions">
-            <Link href="/research" className="site-btn site-btn-primary">Research Lab</Link>
-            <Link href="/terminal" className="site-btn site-btn-outline">Open Terminal</Link>
-            <Link href="/chart" className="site-btn site-btn-outline">View Charts</Link>
+            <Link href="/research" className="site-btn site-btn-primary">Research</Link>
+            <Link href="/terminal" className="site-btn site-btn-outline">Terminal</Link>
+            <Link href="/chart" className="site-btn site-btn-outline">Charts</Link>
           </div>
         </FadeIn>
       </header>

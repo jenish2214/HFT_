@@ -2,11 +2,11 @@ import type { Stage } from "./ActivityLog";
 import { STAGE_COLOR } from "./ActivityLog";
 
 const STEPS: { id: Stage; label: string; desc: string }[] = [
-  { id: "feed", label: "Market Feed", desc: "yfinance sends bid/ask/last price" },
-  { id: "strategy", label: "Strategy", desc: "Algo computes quotes around mid" },
-  { id: "gateway", label: "Order Gateway", desc: "Python routes order to engine" },
-  { id: "engine", label: "Matching Engine", desc: "C++ matches by price-time priority" },
-  { id: "fill", label: "Fill", desc: "Trade done, position & P&L updated" },
+  { id: "feed", label: "Market Feed", desc: "Price update arrives" },
+  { id: "strategy", label: "Strategy", desc: "Quotes around mid" },
+  { id: "gateway", label: "Order Gateway", desc: "Order routed" },
+  { id: "engine", label: "Matching Engine", desc: "Price-time match" },
+  { id: "fill", label: "Fill", desc: "Position updated" },
 ];
 
 interface Props {
@@ -16,7 +16,7 @@ interface Props {
 export default function Pipeline({ activeStage = "feed" }: Props) {
   return (
     <div className="panel">
-      <div className="panel-title">How HFT Works — Data Pipeline</div>
+      <div className="panel-title">Data pipeline</div>
       <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto" }}>
         {STEPS.map((step, i) => {
           const active = step.id === activeStage;
@@ -44,9 +44,7 @@ export default function Pipeline({ activeStage = "feed" }: Props) {
         })}
       </div>
       <p style={{ fontSize: 12, color: "#666", marginTop: 12, lineHeight: 1.6 }}>
-        Watch the <strong>Live Activity</strong> log below — each row shows one step in the loop.
-        The highlighted pipeline stage matches the latest event. Demo mode injects sample trades
-        so you can see fills, latency, and P&L update in real time.
+        The activity log shows each step. The highlighted stage matches the latest event.
       </p>
     </div>
   );

@@ -19,32 +19,30 @@ export default function AboutPageContent() {
 
         <RevealOnScroll delay={0.05}>
           <section className="site-about-block">
-            <h2>What is Orion Alpha?</h2>
+            <h2>Overview</h2>
             <p>
-              Orion Alpha is a market research platform for studying live prices,
-              company fundamentals, and charts across equities, crypto, commodities,
-              FX, and rates — all in one place.
+              Research, charts, and a live terminal for stocks, crypto, commodities, FX, and rates.
             </p>
           </section>
         </RevealOnScroll>
 
         <RevealOnScroll delay={0.1}>
           <section className="site-about-block">
-            <h2>What you can do</h2>
+            <h2>Features</h2>
             <ul className="site-about-list">
-              <li>View live quotes and watchlists</li>
-              <li>Read company fundamentals and reports</li>
-              <li>Open full-screen charts with indicators</li>
-              <li>Use the research terminal for deeper analysis</li>
+              <li>Live quotes and watchlists</li>
+              <li>Company fundamentals</li>
+              <li>Charts with indicators</li>
+              <li>Research desk</li>
             </ul>
           </section>
         </RevealOnScroll>
 
         <FadeIn delay={0.15}>
           <div className="site-about-actions">
-            <Link href="/terminal" className="site-btn site-btn-primary">Open Terminal</Link>
-            <Link href="/chart" className="site-btn site-btn-outline">View Charts</Link>
-            <Link href="/" className="site-btn site-btn-outline">Home</Link>
+            <Link href="/research" className="site-btn site-btn-primary">Research</Link>
+            <Link href="/terminal" className="site-btn site-btn-outline">Terminal</Link>
+            <Link href="/docs" className="site-btn site-btn-outline">Definitions</Link>
           </div>
         </FadeIn>
       </main>
