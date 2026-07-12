@@ -12,8 +12,8 @@ export default function NotFound() {
           Check the symbol or return to the terminal.
         </p>
         <div className="error-page-actions">
-          <Link href="/" className="error-page-btn error-page-btn-primary mono">← Terminal</Link>
-          <Link href="/chart?symbol=AAPL&tf=1D" className="error-page-btn mono">Open Chart</Link>
+          <Link href="/terminal" className="error-page-btn error-page-btn-primary mono">Launch Terminal</Link>
+          <Link href="/" className="error-page-btn mono">Home</Link>
           <Link href="/fundamentals?symbol=AAPL" className="error-page-btn mono">Fundamentals</Link>
         </div>
         <p className="error-page-hint mono">

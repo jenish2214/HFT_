@@ -34,7 +34,7 @@ function FundamentalsContent() {
   return (
     <div className="fa-page-root">
       <header className="fa-page-header">
-        <a href="/" className="fs-back-link mono">← {PRODUCT_NAME}</a>
+        <a href="/terminal" className="fs-back-link mono">← Terminal</a>
         <span className="panel-title">FA — Full Fundamentals</span>
         <form
           className="fs-symbol-form"

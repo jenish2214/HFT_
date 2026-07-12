@@ -2,7 +2,7 @@
 
 import type { ChartAnalysis, IndicatorToggles } from "@/lib/chartIndicators";
 import type { ChartTimeframe } from "@/components/BloombergTerminalChart";
-import type { TickInfo } from "@/app/page";
+import type { TickInfo } from "@/lib/marketTypes";
 
 interface Props {
   symbol: string;
@@ -18,8 +18,8 @@ interface Props {
 
 const INDICATOR_LABELS: { key: keyof IndicatorToggles; label: string; color: string }[] = [
   { key: "volume", label: "Volume", color: "#888" },
-  { key: "sma20", label: "SMA 20", color: "#ff8c00" },
-  { key: "sma50", label: "SMA 50", color: "#ffd700" },
+  { key: "sma20", label: "SMA 20", color: "#22d3ee" },
+  { key: "sma50", label: "SMA 50", color: "#38bdf8" },
   { key: "ema12", label: "EMA 12", color: "#00bcd4" },
   { key: "bb", label: "Bollinger", color: "#9c27b0" },
   { key: "rsi", label: "RSI 14", color: "#3ddc84" },

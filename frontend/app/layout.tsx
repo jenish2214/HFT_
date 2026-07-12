@@ -1,10 +1,19 @@
 import type { Metadata, Viewport } from "next";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import DevConsoleFilter from "@/components/DevConsoleFilter";
+import { SiteThemeProvider } from "@/components/SiteThemeProvider";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-poppins",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "Orion Alpha",
-  description: "Orion Alpha — global markets research terminal with live charts, fundamentals, and multi-asset coverage",
+  title: "Orion Alpha — Market Research Terminal",
+  description: "Orion Alpha — professional market research terminal for equities, crypto, commodities, FX, and fundamentals",
   icons: { icon: "/favicon.svg" },
 };
 
@@ -16,17 +25,19 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={poppins.variable} data-site-theme="light" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var p=/MaxListenersExceededWarning|EventEmitter memory leak|ObjectMultiplex|orphaned data|contentscript\\.js|inpage\\.js|app-init-liveness|background-liveness/;["warn","error","log"].forEach(function(m){var o=console[m];console[m]=function(){if(p.test([].join.call(arguments," ")))return;o.apply(console,arguments)};});})();`,
+            __html: `(function(){try{var t=localStorage.getItem("orion-site-theme");document.documentElement.setAttribute("data-site-theme",t==="dark"?"dark":"light")}catch(e){document.documentElement.setAttribute("data-site-theme","light")}var p=/MaxListenersExceededWarning|EventEmitter memory leak|ObjectMultiplex|orphaned data|contentscript\\.js|inpage\\.js|app-init-liveness|background-liveness/;["warn","error","log"].forEach(function(m){var o=console[m];console[m]=function(){if(p.test([].join.call(arguments," ")))return;o.apply(console,arguments)};});})();`,
           }}
         />
       </head>
-      <body className="terminal-body">
-        <DevConsoleFilter />
-        {children}
+      <body>
+        <SiteThemeProvider>
+          <DevConsoleFilter />
+          {children}
+        </SiteThemeProvider>
       </body>
     </html>
   );

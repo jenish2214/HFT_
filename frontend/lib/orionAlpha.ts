@@ -3,6 +3,7 @@
 export const PRODUCT_NAME = "Orion Alpha";
 export const PRODUCT_TAGLINE = "Global Markets Research Terminal";
 export const PRODUCT_VERSION = "1.0";
+export const COMPANY_NAME = "BSj infotech";
 
 export const ASSET_CLASS_SHORT: Record<string, string> = {
   equity: "EQ",

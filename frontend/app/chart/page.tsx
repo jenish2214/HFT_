@@ -46,9 +46,11 @@ function ChartPageContent() {
 
 export default function ChartPage() {
   return (
-    <Suspense fallback={
-      <div className="fs-chart-root fs-chart-loading-page mono">Loading chart workspace…</div>
-    }>
+    <Suspense
+      fallback={
+        <div className="fs-chart-root fs-chart-loading-page">Loading chart workspace…</div>
+      }
+    >
       <ChartPageContent />
     </Suspense>
   );

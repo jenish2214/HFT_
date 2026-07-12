@@ -1,4 +1,4 @@
-import type { TickInfo, StrategyInfo, Book } from "@/app/page";
+import type { TickInfo, StrategyInfo, Book } from "@/lib/marketTypes";
 
 interface Props {
   tick: TickInfo | null;

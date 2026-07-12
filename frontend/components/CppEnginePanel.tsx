@@ -1,6 +1,6 @@
 "use client";
 
-import type { Stats } from "@/app/page";
+import type { Stats } from "@/lib/marketTypes";
 
 interface Props {
   stats: Stats | null;

@@ -1,4 +1,4 @@
-import type { UserInfo } from "@/app/page";
+import type { UserInfo } from "@/lib/marketTypes";
 import UserPanelContent from "@/components/UserPanel";
 
 interface Props {

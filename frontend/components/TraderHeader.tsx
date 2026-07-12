@@ -1,4 +1,5 @@
-import type { TickInfo, MarketSession } from "@/app/page";
+import type { TickInfo, MarketSession } from "@/lib/marketTypes";
+import Link from "next/link";
 import SymbolSelector from "@/components/SymbolSelector";
 import { PRODUCT_NAME, PRODUCT_TAGLINE } from "@/lib/orionAlpha";
 
@@ -38,9 +39,13 @@ export default function TraderHeader({
     <header className="trader-header bb-header dense-header">
       <div className="trader-header-row dense-header-row">
         <div className="bb-logo-block">
-          <div className="bb-logo oa-logo">OA</div>
+          <Link href="/" className="bb-logo-link" title="Home">
+            <div className="bb-logo oa-logo">OA</div>
+          </Link>
           <div>
-            <div className="trader-brand-title">{PRODUCT_NAME}</div>
+            <div className="trader-brand-title">
+              <Link href="/terminal" className="trader-brand-link">{PRODUCT_NAME}</Link>
+            </div>
             <div className="trader-brand-sub mono">{symbol} · {PRODUCT_TAGLINE}</div>
           </div>
         </div>
@@ -58,7 +63,9 @@ export default function TraderHeader({
         <div className="trader-status">
           <span className={`status-dot ${connected ? "live" : "offline"}`} />
           <span className="bb-status-label">{connected ? "LIVE" : "OFFLINE"}</span>
-          {market?.status && <span className="dense-status-tag">{market.status.toUpperCase()}</span>}
+          {market?.status === "open" && (
+            <span className="dense-status-tag">OPEN</span>
+          )}
         </div>
       </div>
       <div className="trader-metrics dense-metrics">

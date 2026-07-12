@@ -1,4 +1,4 @@
-import type { MarketSession } from "@/app/page";
+import type { MarketSession } from "@/lib/marketTypes";
 
 interface Props {
   market: MarketSession | null;
@@ -14,28 +14,12 @@ function fmtAgo(ts: number): string {
 }
 
 export default function MarketStatusBar({ market, lastUpdateTs = 0 }: Props) {
-  if (!market) return null;
-
-  const cls =
-    market.status === "open" ? "market-bar-open"
-    : market.status === "pre" ? "market-bar-pre"
-    : market.status === "after" ? "market-bar-after"
-    : market.is_weekend ? "market-bar-weekend"
-    : "market-bar-closed";
-
-  const isRegular = market.is_regular_hours;
-  const isLive = market.is_live;
-
-  const statusPill =
-    isRegular ? "REGULAR · LIVE"
-    : market.is_weekend ? "WEEKEND · CLOSED"
-    : isLive ? "EXTENDED HOURS"
-    : "CLOSED · DELAYED";
+  if (!market || market.status !== "open") return null;
 
   return (
-    <div className={`market-bar ${cls}`}>
-      <span className={`market-bar-pill${isRegular ? " market-bar-live market-bar-live-pulse" : market.is_weekend ? " market-bar-weekend-pill" : isLive ? " market-bar-ext" : " market-bar-delayed"}`}>
-        {statusPill}
+    <div className="market-bar market-bar-open">
+      <span className="market-bar-pill market-bar-live market-bar-live-pulse">
+        OPEN · LIVE
       </span>
       <span className="market-bar-label">{market.label}</span>
       {market.session_detail && (

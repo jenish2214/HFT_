@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChartBar, ChartTimeframe } from "@/components/BloombergTerminalChart";
-import type { MarketSession, TickInfo } from "@/app/page";
+import type { MarketSession, TickInfo } from "@/lib/marketTypes";
 import { useMarketStream } from "@/hooks/useMarketStream";
 import { getApiBase } from "@/lib/api";
 import { mergeChartBars, mergeChartPatch, sameTick } from "@/lib/marketDelta";

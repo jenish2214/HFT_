@@ -1,5 +1,5 @@
 import type { ChartBar } from "@/components/BloombergTerminalChart";
-import type { Book, StrategyInfo, TickInfo, UserInfo } from "@/app/page";
+import type { Book, StrategyInfo, TickInfo, UserInfo } from "@/lib/marketTypes";
 
 export function sameTick(a: TickInfo | null, b: TickInfo): boolean {
   if (!a) return false;

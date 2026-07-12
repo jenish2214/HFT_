@@ -7,8 +7,11 @@ import {
   type CandlestickData,
   type HistogramData,
   type UTCTimestamp,
+  createChart,
+  ColorType,
+  CrosshairMode,
 } from "lightweight-charts";
-import type { MarketSession, TickInfo } from "@/app/page";
+import type { MarketSession, TickInfo } from "@/lib/marketTypes";
 import { chartPageUrl } from "@/lib/chartIndicators";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ChartSymbolBar from "@/components/ChartSymbolBar";
@@ -56,12 +59,12 @@ interface CrosshairInfo {
 }
 
 const CHART_THEME = {
-  bg: "#000000",
-  grid: "#1a1a1a",
-  border: "#2a2a2a",
-  text: "#666666",
-  up: "#3ddc84",
-  down: "#ff5252",
+  bg: "#0a0f1a",
+  grid: "#1e2d4a",
+  border: "#1e2d4a",
+  text: "#64748b",
+  up: "#34d399",
+  down: "#f87171",
 };
 
 function normalizeTs(ts: unknown): number {
@@ -204,8 +207,7 @@ export default function BloombergTerminalChart({
     let disposed = false;
     let ro: ResizeObserver | null = null;
 
-    const init = async () => {
-      const { createChart, ColorType, CrosshairMode } = await import("lightweight-charts");
+    const init = () => {
       if (disposed || !containerRef.current) return;
 
       try {
@@ -222,7 +224,7 @@ export default function BloombergTerminalChart({
           },
           crosshair: {
             mode: CrosshairMode.Normal,
-            vertLine: { color: "#333333", width: 1, style: 2, labelBackgroundColor: "#ff8c00" },
+            vertLine: { color: "#333333", width: 1, style: 2, labelBackgroundColor: "#22d3ee" },
             horzLine: { color: "#333333", width: 1, style: 2, labelBackgroundColor: "#1a1a1a" },
           },
           rightPriceScale: {
@@ -414,12 +416,6 @@ export default function BloombergTerminalChart({
     }
   }, [bars, loading, timeframe, symbol, fitFixed]);
 
-  const marketLabel =
-    market?.status === "open" ? "REGULAR SESSION"
-    : market?.status === "pre" ? "PRE-MARKET"
-    : market?.status === "after" ? "AFTER-HOURS"
-    : "MARKET CLOSED";
-
   const cleanBars = sanitizeBars(bars);
   const display = crosshair ?? (cleanBars.length > 0 ? {
     time: fmtBarTime(cleanBars[cleanBars.length - 1].ts, timeframe),
@@ -444,7 +440,6 @@ export default function BloombergTerminalChart({
             />
           )}
           {isOpen && timeframe === "1D" && <span className="bloomberg-live-badge">LIVE</span>}
-          {!isOpen && isLive && timeframe === "1D" && <span className="bloomberg-ext-badge">EXT</span>}
           <a
             href={chartPageUrl(symbol, timeframe)}
             target="_blank"
@@ -489,12 +484,9 @@ export default function BloombergTerminalChart({
               </span>
             </>
           )}
-          <span className={`chart-market-tag dense-fixed-tag ${
-            market?.status === "open" ? "chart-market-open"
-            : market?.status === "pre" ? "chart-market-pre"
-            : market?.status === "after" ? "chart-market-after"
-            : "chart-market-closed"
-          }`}>{marketLabel}</span>
+          {market?.status === "open" && (
+            <span className="chart-market-tag dense-fixed-tag chart-market-open">OPEN</span>
+          )}
         </div>
       )}
 

@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { IChartApi, ISeriesApi, CandlestickData, HistogramData, LineData } from "lightweight-charts";
+import type { IChartApi, ISeriesApi, CandlestickData, HistogramData, LineData, UTCTimestamp } from "lightweight-charts";
+import { createChart, ColorType, CrosshairMode } from "lightweight-charts";
 import type { ChartBar, ChartTimeframe } from "@/components/BloombergTerminalChart";
 import { CHART_TIMEFRAMES } from "@/components/BloombergTerminalChart";
-import type { MarketSession, TickInfo } from "@/app/page";
+import type { MarketSession, TickInfo } from "@/lib/marketTypes";
 import {
   bollinger,
   computeAnalysis,
@@ -22,12 +23,12 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
 const CHART_THEME = {
-  bg: "#000000",
-  grid: "#1a1a1a",
-  border: "#2a2a2a",
-  text: "#666666",
-  up: "#3ddc84",
-  down: "#ff5252",
+  bg: "#0a0f1a",
+  grid: "#1e2d4a",
+  border: "#1e2d4a",
+  text: "#64748b",
+  up: "#34d399",
+  down: "#f87171",
 };
 
 interface Props {
@@ -142,8 +143,7 @@ export default function FullScreenChartView({
     let disposed = false;
     const roList: ResizeObserver[] = [];
 
-    const init = async () => {
-      const { createChart, ColorType, CrosshairMode } = await import("lightweight-charts");
+    const init = () => {
       if (disposed) return;
 
       const baseOpts = {
@@ -159,7 +159,7 @@ export default function FullScreenChartView({
         },
         crosshair: {
           mode: CrosshairMode.Normal,
-          vertLine: { color: "#333", width: 1 as const, style: 2, labelBackgroundColor: "#ff8c00" },
+          vertLine: { color: "#333", width: 1 as const, style: 2, labelBackgroundColor: "#22d3ee" },
           horzLine: { color: "#333", width: 1 as const, style: 2, labelBackgroundColor: "#1a1a1a" },
         },
         timeScale: {
@@ -233,7 +233,7 @@ export default function FullScreenChartView({
           handleScale: false,
         });
         macdHistRef.current = chart.addHistogramSeries({ priceLineVisible: false, lastValueVisible: false });
-        macdLineRef.current = chart.addLineSeries({ color: "#ff8c00", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+        macdLineRef.current = chart.addLineSeries({ color: "#22d3ee", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
         macdSignalRef.current = chart.addLineSeries({ color: "#00bcd4", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
         const ro = new ResizeObserver(([e]) => {
           const { width, height } = e.contentRect;
@@ -294,8 +294,8 @@ export default function FullScreenChartView({
       overlayRefs.current.push(s);
     };
 
-    if (indicators.sma20) addLine(toLine(cleanBars, indicatorData.sma20), "#ff8c00");
-    if (indicators.sma50) addLine(toLine(cleanBars, indicatorData.sma50), "#ffd700");
+    if (indicators.sma20) addLine(toLine(cleanBars, indicatorData.sma20), "#22d3ee");
+    if (indicators.sma50) addLine(toLine(cleanBars, indicatorData.sma50), "#38bdf8");
     if (indicators.ema12) addLine(toLine(cleanBars, indicatorData.ema12), "#00bcd4");
     if (indicators.bb) {
       addLine(toLine(cleanBars, indicatorData.bb.upper), "#9c27b0");
@@ -330,17 +330,11 @@ export default function FullScreenChartView({
     }
   }, [cleanBars, indicatorData.macd, indicators.macd]);
 
-  const marketLabel =
-    market?.status === "open" ? "REGULAR"
-    : market?.status === "pre" ? "PRE-MARKET"
-    : market?.status === "after" ? "AFTER-HOURS"
-    : "CLOSED";
-
   return (
     <div className="fs-chart-root">
       <header className="fs-chart-header">
         <div className="fs-chart-header-left">
-          <a href="/" className="fs-back-link mono">← {PRODUCT_NAME}</a>
+          <a href="/terminal" className="fs-back-link mono">← Terminal</a>
           <ChartSymbolBar
             symbol={symbol}
             onChange={onSymbolChange}
@@ -352,7 +346,9 @@ export default function FullScreenChartView({
             </span>
           )}
           <span className={`fs-conn-dot${connected ? " fs-conn-live" : ""}`} title={connected ? "Connected" : "Disconnected"} />
-          <span className="fs-market-tag mono">{marketLabel}</span>
+          {market?.status === "open" && (
+            <span className="fs-market-tag mono chart-market-open">OPEN</span>
+          )}
           {crosshair && <span className="fs-crosshair-time mono">{crosshair}</span>}
         </div>
         <div className="chart-timeframe-row">

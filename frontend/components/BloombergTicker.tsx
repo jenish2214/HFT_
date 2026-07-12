@@ -1,6 +1,6 @@
 "use client";
 
-import type { TickInfo, MarketSession } from "@/app/page";
+import type { TickInfo, MarketSession } from "@/lib/marketTypes";
 import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
 interface Props {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Trade } from "@/app/page";
+import type { Trade } from "@/lib/marketTypes";
 
 interface Props {
   trades: Trade[];

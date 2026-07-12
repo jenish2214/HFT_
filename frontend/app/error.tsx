@@ -30,7 +30,8 @@ export default function Error({
           <button type="button" className="error-page-btn error-page-btn-primary mono" onClick={reset}>
             Try Again
           </button>
-          <Link href="/" className="error-page-btn mono">← Terminal</Link>
+          <Link href="/terminal" className="error-page-btn mono">Launch Terminal</Link>
+          <Link href="/" className="error-page-btn mono">Home</Link>
         </div>
         <p className="error-page-hint mono">
           If this persists: bash scripts/run.sh · hard refresh Cmd+Shift+R

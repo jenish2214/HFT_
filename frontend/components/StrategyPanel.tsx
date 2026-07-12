@@ -1,4 +1,4 @@
-import type { StrategyInfo } from "@/app/page";
+import type { StrategyInfo } from "@/lib/marketTypes";
 
 interface Props {
   strategy: StrategyInfo;

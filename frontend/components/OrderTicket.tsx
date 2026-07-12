@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { UserInfo } from "@/app/page";
+import type { UserInfo } from "@/lib/marketTypes";
 
 export interface OrderResult {
   ok: boolean;

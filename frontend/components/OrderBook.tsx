@@ -1,4 +1,4 @@
-import type { Book } from "@/app/page";
+import type { Book } from "@/lib/marketTypes";
 
 interface Props {
   book: Book;

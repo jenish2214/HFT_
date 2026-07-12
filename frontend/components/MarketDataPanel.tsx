@@ -1,4 +1,4 @@
-import type { TickInfo } from "@/app/page";
+import type { TickInfo } from "@/lib/marketTypes";
 import PanelLoading from "@/components/PanelLoading";
 
 interface Props {
