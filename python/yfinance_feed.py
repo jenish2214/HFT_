@@ -3,6 +3,7 @@ Real market data feed via yfinance with extended quote fields.
 """
 
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
 import yfinance as yf
@@ -347,36 +348,644 @@ class YFinanceFeed:
 
 
 WATCHLIST_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "TSLA", "AMZN", "NVDA", "META", "SPY"]
+
+MARKET_UNIVERSE: dict[str, dict] = {
+    "equity": {
+        "label": "Equities",
+        "symbols": [
+            ("AAPL", "Apple Inc"),
+            ("MSFT", "Microsoft"),
+            ("GOOGL", "Alphabet"),
+            ("NVDA", "NVIDIA"),
+            ("TSLA", "Tesla"),
+            ("AMZN", "Amazon"),
+            ("META", "Meta Platforms"),
+            ("JPM", "JPMorgan Chase"),
+            ("XOM", "Exxon Mobil"),
+        ],
+    },
+    "crypto": {
+        "label": "Crypto",
+        "symbols": [
+            ("BTC-USD", "Bitcoin"),
+            ("ETH-USD", "Ethereum"),
+            ("SOL-USD", "Solana"),
+            ("BNB-USD", "BNB"),
+            ("XRP-USD", "Ripple"),
+        ],
+    },
+    "commodity": {
+        "label": "Commodities",
+        "symbols": [
+            ("GC=F", "Gold"),
+            ("CL=F", "WTI Crude Oil"),
+            ("SI=F", "Silver"),
+            ("NG=F", "Natural Gas"),
+            ("HG=F", "Copper"),
+            ("ZC=F", "Corn"),
+        ],
+    },
+    "index": {
+        "label": "Indices & ETFs",
+        "symbols": [
+            ("SPY", "S&P 500 ETF"),
+            ("QQQ", "Nasdaq 100 ETF"),
+            ("DIA", "Dow Jones ETF"),
+            ("IWM", "Russell 2000 ETF"),
+            ("^VIX", "VIX Volatility"),
+            ("^GSPC", "S&P 500 Index"),
+        ],
+    },
+    "fx": {
+        "label": "FX",
+        "symbols": [
+            ("EURUSD=X", "EUR / USD"),
+            ("GBPUSD=X", "GBP / USD"),
+            ("USDJPY=X", "USD / JPY"),
+            ("DX-Y.NYB", "US Dollar Index"),
+        ],
+    },
+    "rates": {
+        "label": "Rates",
+        "symbols": [
+            ("^TNX", "10Y Treasury Yield"),
+            ("TLT", "20Y+ Treasury ETF"),
+            ("SHY", "1-3Y Treasury ETF"),
+        ],
+    },
+}
+
+
+def _build_orion_universe() -> tuple[list[str], dict[str, dict]]:
+    symbols: list[str] = []
+    meta: dict[str, dict] = {}
+    for cat_id, cat in MARKET_UNIVERSE.items():
+        for sym, name in cat["symbols"]:
+            symbols.append(sym)
+            meta[sym] = {
+                "name": name,
+                "asset_class": cat_id,
+                "asset_class_label": cat["label"],
+            }
+    return symbols, meta
+
+
+ORION_UNIVERSE_SYMBOLS, ORION_SYMBOL_META = _build_orion_universe()
+WATCHLIST_SYMBOLS = ORION_UNIVERSE_SYMBOLS
+
 _watchlist_cache: list[dict] = []
 _watchlist_ts: float = 0.0
+_watchlist_refreshing: bool = False
+_watchlist_executor = ThreadPoolExecutor(max_workers=12, thread_name_prefix="watch")
+_overview_cache: dict | None = None
+_overview_ts: float = 0.0
+_research_cache: dict[str, dict] = {}
+_research_cache_ts: dict[str, float] = {}
+_report_cache: dict[str, dict] = {}
+_report_cache_ts: dict[str, float] = {}
+_all_reports_cache: list[dict] = []
+_all_reports_ts: float = 0.0
+_REPORT_TTL = 3600.0
+
+
+def _safe_float(val) -> float | None:
+    try:
+        if val is None or val != val:
+            return None
+        return round(float(val), 2)
+    except (TypeError, ValueError):
+        return None
+
+
+def _fmt_large(n: float | None) -> str | None:
+    if n is None:
+        return None
+    abs_n = abs(n)
+    if abs_n >= 1e12:
+        return f"{n / 1e12:.2f}T"
+    if abs_n >= 1e9:
+        return f"{n / 1e9:.2f}B"
+    if abs_n >= 1e6:
+        return f"{n / 1e6:.2f}M"
+    return f"{n:,.0f}"
+
+
+def _row_value(df, names: tuple[str, ...], col):
+    for name in names:
+        if name in df.index:
+            return _safe_float(df.loc[name, col])
+    return None
+
+
+def _year_label(col) -> str:
+    if hasattr(col, "year"):
+        return str(col.year)
+    return str(col)[:4]
+
+
+def _build_statement(df, row_defs: list[tuple[str, tuple[str, ...]]], max_years: int = 4) -> dict:
+    """Extract multi-year financial statement rows from a yfinance dataframe."""
+    if df is None or df.empty:
+        return {"years": [], "rows": []}
+
+    years_cols = list(df.columns[:max_years])
+    years = [_year_label(c) for c in years_cols]
+    rows: list[dict] = []
+
+    for label, keys in row_defs:
+        values: list[float | None] = []
+        values_fmt: list[str | None] = []
+        for col in years_cols:
+            v = _row_value(df, keys, col)
+            values.append(v)
+            values_fmt.append(_fmt_large(v))
+        if any(v is not None for v in values):
+            rows.append({"label": label, "values": values, "values_fmt": values_fmt})
+
+    return {"years": years, "rows": rows}
+
+
+INCOME_ROWS = [
+    ("Total Revenue", ("Total Revenue", "Operating Revenue")),
+    ("Cost of Revenue", ("Cost Of Revenue", "Reconciled Cost Of Revenue")),
+    ("Gross Profit", ("Gross Profit",)),
+    ("Operating Expenses", ("Operating Expense", "Total Operating Expenses As Reported")),
+    ("Operating Income", ("Operating Income", "EBIT")),
+    ("Interest Expense", ("Interest Expense", "Interest Expense Non Operating")),
+    ("Pretax Income", ("Pretax Income", "Income Before Tax")),
+    ("Tax Provision", ("Tax Provision",)),
+    ("Net Income", ("Net Income", "Net Income Common Stockholders")),
+    ("EBITDA", ("EBITDA", "Normalized EBITDA")),
+    ("Basic EPS", ("Basic EPS",)),
+    ("Diluted EPS", ("Diluted EPS",)),
+]
+
+BALANCE_ROWS = [
+    ("Total Assets", ("Total Assets",)),
+    ("Current Assets", ("Current Assets",)),
+    ("Cash & Equivalents", ("Cash And Cash Equivalents", "Cash Cash Equivalents And Short Term Investments")),
+    ("Total Liabilities", ("Total Liabilities Net Minority Interest", "Total Liabilities")),
+    ("Current Liabilities", ("Current Liabilities",)),
+    ("Total Debt", ("Total Debt", "Long Term Debt And Capital Lease Obligation")),
+    ("Stockholders Equity", ("Stockholders Equity", "Total Equity Gross Minority Interest")),
+    ("Retained Earnings", ("Retained Earnings",)),
+    ("Working Capital", ("Working Capital",)),
+]
+
+CASHFLOW_ROWS = [
+    ("Operating Cash Flow", ("Operating Cash Flow", "Cash Flow From Continuing Operating Activities")),
+    ("Investing Cash Flow", ("Investing Cash Flow", "Cash Flow From Continuing Investing Activities")),
+    ("Financing Cash Flow", ("Financing Cash Flow", "Cash Flow From Continuing Financing Activities")),
+    ("Capital Expenditure", ("Capital Expenditure", "Capital Expenditure Reported")),
+    ("Free Cash Flow", ("Free Cash Flow",)),
+    ("Dividends Paid", ("Cash Dividends Paid", "Common Stock Dividend Paid")),
+    ("Stock Repurchased", ("Repurchase Of Capital Stock", "Common Stock Payments")),
+    ("Change in Cash", ("Changes In Cash", "Change In Cash Supplemental As Reported")),
+]
+
+
+def _extract_key_stats(info: dict) -> list[dict]:
+    """Key valuation and profitability metrics from yfinance info."""
+    fields = [
+        ("Profit Margin", "profitMargins", "pct"),
+        ("Operating Margin", "operatingMargins", "pct"),
+        ("Return on Equity", "returnOnEquity", "pct"),
+        ("Return on Assets", "returnOnAssets", "pct"),
+        ("Revenue Growth", "revenueGrowth", "pct"),
+        ("Earnings Growth", "earningsGrowth", "pct"),
+        ("Debt / Equity", "debtToEquity", "ratio"),
+        ("Current Ratio", "currentRatio", "ratio"),
+        ("Quick Ratio", "quickRatio", "ratio"),
+        ("P/E (Trailing)", "trailingPE", "num"),
+        ("P/E (Forward)", "forwardPE", "num"),
+        ("PEG Ratio", "pegRatio", "num"),
+        ("Price / Book", "priceToBook", "num"),
+        ("EV / Revenue", "enterpriseToRevenue", "num"),
+        ("EV / EBITDA", "enterpriseToEbitda", "num"),
+        ("Beta", "beta", "num"),
+        ("Payout Ratio", "payoutRatio", "pct"),
+        ("Book Value", "bookValue", "money"),
+        ("Enterprise Value", "enterpriseValue", "large"),
+        ("Total Cash", "totalCash", "large"),
+        ("Total Debt", "totalDebt", "large"),
+        ("EBITDA", "ebitda", "large"),
+        ("Revenue (TTM)", "totalRevenue", "large"),
+        ("Gross Profits", "grossProfits", "large"),
+    ]
+
+    stats: list[dict] = []
+    for label, key, fmt in fields:
+        raw = info.get(key)
+        if raw is None or raw != raw:
+            continue
+        try:
+            val = float(raw)
+        except (TypeError, ValueError):
+            continue
+
+        if fmt == "pct":
+            display = f"{val * 100:.2f}%"
+        elif fmt == "money":
+            display = f"${val:.2f}"
+        elif fmt == "large":
+            display = _fmt_large(val) or str(val)
+        elif fmt == "ratio":
+            display = f"{val:.2f}"
+        else:
+            display = f"{val:.2f}"
+
+        stats.append({"label": label, "value": val, "display": display})
+
+    return stats
+
+
+def fetch_company_report(symbol: str) -> dict:
+    """Annual-report style fundamentals for a single symbol."""
+    sym = symbol.upper().strip()
+    now = time.time()
+    cached = _report_cache.get(sym)
+    if cached and now - _report_cache_ts.get(sym, 0) < _REPORT_TTL:
+        return cached
+
+    report: dict = {
+        "symbol": sym,
+        "name": sym,
+        "sector": None,
+        "industry": None,
+        "description": None,
+        "website": None,
+        "employees": None,
+        "market_cap": None,
+        "market_cap_fmt": None,
+        "pe_ratio": None,
+        "eps": None,
+        "dividend_yield": None,
+        "fifty_two_week_high": None,
+        "fifty_two_week_low": None,
+        "annual_reports": [],
+        "income_statement": {"years": [], "rows": []},
+        "balance_sheet": {"years": [], "rows": []},
+        "cash_flow": {"years": [], "rows": []},
+        "key_stats": [],
+    }
+
+    try:
+        t = yf.Ticker(sym)
+        info = t.info or {}
+        report.update({
+            "name": info.get("longName") or info.get("shortName") or sym,
+            "sector": info.get("sector"),
+            "industry": info.get("industry"),
+            "description": (info.get("longBusinessSummary") or "")[:800] or None,
+            "website": info.get("website"),
+            "employees": info.get("fullTimeEmployees"),
+            "market_cap": _safe_float(info.get("marketCap")),
+            "market_cap_fmt": _fmt_large(_safe_float(info.get("marketCap"))),
+            "pe_ratio": _safe_float(info.get("trailingPE")),
+            "eps": _safe_float(info.get("trailingEps")),
+            "dividend_yield": _safe_float(info.get("dividendYield")),
+            "fifty_two_week_high": _safe_float(info.get("fiftyTwoWeekHigh")),
+            "fifty_two_week_low": _safe_float(info.get("fiftyTwoWeekLow")),
+            "key_stats": _extract_key_stats(info),
+        })
+
+        fin = t.financials
+        if fin is not None and not fin.empty:
+            years = list(fin.columns[:4])
+            annual: list[dict] = []
+            for col in years:
+                year = _year_label(col)
+                revenue = _row_value(fin, ("Total Revenue", "Operating Revenue"), col)
+                gross = _row_value(fin, ("Gross Profit",), col)
+                operating = _row_value(fin, ("Operating Income", "EBIT"), col)
+                net = _row_value(fin, ("Net Income", "Net Income Common Stockholders"), col)
+                annual.append({
+                    "year": year,
+                    "revenue": revenue,
+                    "revenue_fmt": _fmt_large(revenue),
+                    "gross_profit": gross,
+                    "gross_profit_fmt": _fmt_large(gross),
+                    "operating_income": operating,
+                    "operating_income_fmt": _fmt_large(operating),
+                    "net_income": net,
+                    "net_income_fmt": _fmt_large(net),
+                })
+            report["annual_reports"] = annual
+
+        report["income_statement"] = _build_statement(fin, INCOME_ROWS)
+
+        bs = t.balance_sheet
+        report["balance_sheet"] = _build_statement(bs, BALANCE_ROWS)
+
+        cf = t.cashflow
+        report["cash_flow"] = _build_statement(cf, CASHFLOW_ROWS)
+    except Exception as exc:
+        print(f"[yfinance] company report failed ({sym}): {exc}")
+
+    _report_cache[sym] = report
+    _report_cache_ts[sym] = now
+    return report
+
+
+def fetch_all_company_reports() -> list[dict]:
+    """Summaries for every watchlist symbol — annual report directory."""
+    global _all_reports_cache, _all_reports_ts
+    now = time.time()
+    if _all_reports_cache and now - _all_reports_ts < _REPORT_TTL:
+        return _all_reports_cache
+
+    rows = []
+    equity_syms = [sym for sym, _ in MARKET_UNIVERSE["equity"]["symbols"]]
+    for sym in equity_syms:
+        r = fetch_company_report(sym)
+        rows.append({
+            "symbol": r["symbol"],
+            "name": r["name"],
+            "sector": r["sector"],
+            "industry": r["industry"],
+            "market_cap_fmt": r["market_cap_fmt"],
+            "pe_ratio": r["pe_ratio"],
+            "eps": r["eps"],
+            "latest_revenue_fmt": (
+                r["annual_reports"][0]["revenue_fmt"]
+                if r.get("annual_reports") else None
+            ),
+            "latest_net_income_fmt": (
+                r["annual_reports"][0]["net_income_fmt"]
+                if r.get("annual_reports") else None
+            ),
+            "report_year": (
+                r["annual_reports"][0]["year"]
+                if r.get("annual_reports") else None
+            ),
+        })
+
+    _all_reports_cache = rows
+    _all_reports_ts = now
+    return rows
+
+
+def _fetch_one_watch_row(sym: str) -> dict:
+    """Single watchlist row — fast_info only (no slow t.info)."""
+    meta = ORION_SYMBOL_META.get(sym, {})
+    try:
+        t = yf.Ticker(sym)
+        fi = t.fast_info
+        price = float(getattr(fi, "last_price", 0) or getattr(fi, "lastPrice", 0) or 0)
+        prev = float(getattr(fi, "previous_close", 0) or getattr(fi, "previousClose", 0) or 0)
+        chg = price - prev if price and prev else 0.0
+        chg_pct = (chg / prev * 100) if prev else 0.0
+        return {
+            "symbol": sym,
+            "name": meta.get("name") or sym,
+            "sector": None,
+            "asset_class": meta.get("asset_class"),
+            "asset_class_label": meta.get("asset_class_label"),
+            "price": round(price, 4 if meta.get("asset_class") == "fx" else 2),
+            "change": round(chg, 4 if meta.get("asset_class") == "fx" else 2),
+            "change_pct": round(chg_pct, 2),
+        }
+    except Exception:
+        cached = next((r for r in _watchlist_cache if r["symbol"] == sym), None)
+        return cached or {
+            "symbol": sym,
+            "name": meta.get("name") or sym,
+            "sector": None,
+            "asset_class": meta.get("asset_class"),
+            "asset_class_label": meta.get("asset_class_label"),
+            "price": 0,
+            "change": 0,
+            "change_pct": 0,
+        }
+
+
+def _refresh_watchlist_sync() -> list[dict]:
+    global _watchlist_cache, _watchlist_ts, _watchlist_refreshing
+    _watchlist_refreshing = True
+    try:
+        order = {s: i for i, s in enumerate(WATCHLIST_SYMBOLS)}
+        rows = list(_watchlist_executor.map(_fetch_one_watch_row, WATCHLIST_SYMBOLS))
+        rows.sort(key=lambda r: order.get(r["symbol"], 999))
+        _watchlist_cache = rows
+        _watchlist_ts = time.time()
+        return rows
+    finally:
+        _watchlist_refreshing = False
 
 
 def fetch_watchlist() -> list[dict]:
-    """Batch quotes for Bloomberg-style watchlist panel."""
+    """Batch quotes for Orion Alpha monitor — parallel fetch, stale-while-revalidate."""
     global _watchlist_cache, _watchlist_ts
     now = time.time()
-    if _watchlist_cache and now - _watchlist_ts < 45:
+    if _watchlist_cache and now - _watchlist_ts < 90:
         return _watchlist_cache
 
-    rows: list[dict] = []
-    for sym in WATCHLIST_SYMBOLS:
-        try:
-            t = yf.Ticker(sym)
-            fi = t.fast_info
-            price = float(getattr(fi, "last_price", 0) or getattr(fi, "lastPrice", 0) or 0)
-            prev = float(getattr(fi, "previous_close", 0) or getattr(fi, "previousClose", 0) or 0)
-            chg = price - prev if price and prev else 0.0
-            chg_pct = (chg / prev * 100) if prev else 0.0
-            rows.append({
-                "symbol": sym,
-                "price": round(price, 2),
-                "change": round(chg, 2),
-                "change_pct": round(chg_pct, 2),
-            })
-        except Exception:
-            cached = next((r for r in _watchlist_cache if r["symbol"] == sym), None)
-            rows.append(cached or {"symbol": sym, "price": 0, "change": 0, "change_pct": 0})
+    # Serve stale data immediately while a refresh is in flight.
+    if _watchlist_refreshing and _watchlist_cache:
+        return _watchlist_cache
 
-    _watchlist_cache = rows
-    _watchlist_ts = now
-    return rows
+    if _watchlist_cache and now - _watchlist_ts < 300:
+        # Stale but usable — refresh in background thread, don't block /state.
+        _watchlist_executor.submit(_refresh_watchlist_sync)
+        return _watchlist_cache
+
+    return _refresh_watchlist_sync()
+
+
+def detect_asset_class(symbol: str) -> str:
+    sym = symbol.upper().strip()
+    if sym.endswith("-USD") or sym.endswith("-USDT"):
+        return "crypto"
+    if sym.endswith("=F"):
+        return "commodity"
+    if sym.endswith("=X") or sym == "DX-Y.NYB":
+        return "fx"
+    if sym in ("^TNX", "TLT", "SHY"):
+        return "rates"
+    if sym.startswith("^") or sym in ("SPY", "QQQ", "DIA", "IWM"):
+        return "index"
+    return "equity"
+
+
+def _fetch_market_row(sym: str, name: str | None = None, asset_class: str | None = None) -> dict:
+    sym = sym.upper().strip()
+    ac = asset_class or detect_asset_class(sym)
+    row: dict = {
+        "symbol": sym,
+        "name": name or sym,
+        "asset_class": ac,
+        "price": 0.0,
+        "change": 0.0,
+        "change_pct": 0.0,
+        "volume": 0,
+        "day_high": None,
+        "day_low": None,
+        "market_cap_fmt": None,
+        "fifty_two_week_high": None,
+        "fifty_two_week_low": None,
+    }
+    try:
+        t = yf.Ticker(sym)
+        fi = t.fast_info
+        info = t.info or {}
+        price = float(getattr(fi, "last_price", 0) or getattr(fi, "lastPrice", 0) or 0)
+        prev = float(getattr(fi, "previous_close", 0) or getattr(fi, "previousClose", 0) or 0)
+        chg = price - prev if price and prev else 0.0
+        chg_pct = (chg / prev * 100) if prev else 0.0
+        vol = getattr(fi, "last_volume", None) or getattr(fi, "volume", None) or info.get("volume")
+        row.update({
+            "name": name or info.get("shortName") or info.get("longName") or sym,
+            "price": round(price, 4 if ac in ("fx", "rates") else 2),
+            "change": round(chg, 4 if ac in ("fx", "rates") else 2),
+            "change_pct": round(chg_pct, 2),
+            "volume": int(vol) if vol else 0,
+            "day_high": _safe_float(getattr(fi, "day_high", None) or info.get("dayHigh")),
+            "day_low": _safe_float(getattr(fi, "day_low", None) or info.get("dayLow")),
+            "market_cap_fmt": _fmt_large(_safe_float(info.get("marketCap"))),
+            "fifty_two_week_high": _safe_float(info.get("fiftyTwoWeekHigh")),
+            "fifty_two_week_low": _safe_float(info.get("fiftyTwoWeekLow")),
+            "sector": info.get("sector"),
+            "currency": info.get("currency"),
+        })
+    except Exception as exc:
+        print(f"[yfinance] market row failed ({sym}): {exc}")
+    return row
+
+
+def fetch_markets_overview() -> dict:
+    """Cross-asset market board — equities, crypto, commodities, indices, FX, rates."""
+    global _overview_cache, _overview_ts
+    now = time.time()
+    if _overview_cache and now - _overview_ts < 60:
+        return _overview_cache
+
+    categories: dict[str, dict] = {}
+    all_assets: list[dict] = []
+
+    for cat_id, cat in MARKET_UNIVERSE.items():
+        assets: list[dict] = []
+        for item in cat["symbols"]:
+            sym, label = item if isinstance(item, tuple) else (item, item)
+            row = _fetch_market_row(sym, label, cat_id)
+            assets.append(row)
+            all_assets.append(row)
+        categories[cat_id] = {"label": cat["label"], "assets": assets}
+
+    up = sum(1 for a in all_assets if a.get("change_pct", 0) > 0)
+    down = sum(1 for a in all_assets if a.get("change_pct", 0) < 0)
+    flat = len(all_assets) - up - down
+    sorted_assets = sorted(all_assets, key=lambda a: a.get("change_pct", 0), reverse=True)
+
+    result = {
+        "categories": categories,
+        "breadth": {"up": up, "down": down, "flat": flat, "total": len(all_assets)},
+        "top_gainers": sorted_assets[:5],
+        "top_losers": sorted_assets[-5:][::-1],
+        "updated_ts": now,
+    }
+    _overview_cache = result
+    _overview_ts = now
+    return result
+
+
+def fetch_banker_desk() -> dict:
+    """Investment banker macro desk — cross-asset snapshot with risk sentiment."""
+    overview = fetch_markets_overview()
+    cats = overview["categories"]
+
+    def _avg_chg(cat_id: str) -> float:
+        assets = cats.get(cat_id, {}).get("assets", [])
+        if not assets:
+            return 0.0
+        return round(sum(a.get("change_pct", 0) for a in assets) / len(assets), 2)
+
+    equity_avg = _avg_chg("equity")
+    crypto_avg = _avg_chg("crypto")
+    commodity_avg = _avg_chg("commodity")
+    index_avg = _avg_chg("index")
+
+    risk_score = equity_avg + index_avg * 0.5 + crypto_avg * 0.3
+    if risk_score > 0.3:
+        sentiment = "Risk-On"
+    elif risk_score < -0.3:
+        sentiment = "Risk-Off"
+    else:
+        sentiment = "Neutral"
+
+    headline = []
+    for key in ("index", "rates", "commodity", "crypto", "fx"):
+        for a in cats.get(key, {}).get("assets", [])[:2]:
+            headline.append(a)
+
+    return {
+        **overview,
+        "macro": {
+            "sentiment": sentiment,
+            "risk_score": round(risk_score, 2),
+            "equity_avg_chg": equity_avg,
+            "crypto_avg_chg": crypto_avg,
+            "commodity_avg_chg": commodity_avg,
+            "index_avg_chg": index_avg,
+            "headline_assets": headline[:8],
+        },
+    }
+
+
+def fetch_research_profile(symbol: str) -> dict:
+    """Professional research desk — fundamentals, peers, asset-class context."""
+    sym = symbol.upper().strip()
+    now = time.time()
+    cached = _research_cache.get(sym)
+    if cached and now - _research_cache_ts.get(sym, 0) < _REPORT_TTL:
+        return cached
+
+    asset_class = detect_asset_class(sym)
+    quote = _fetch_market_row(sym)
+    report = fetch_company_report(sym) if asset_class == "equity" else None
+
+    overview = fetch_markets_overview()
+    same_class = overview["categories"].get(asset_class, {}).get("assets", [])
+    peers = sorted(same_class, key=lambda a: abs(a.get("change_pct", 0)), reverse=True)[:8]
+
+    hi = quote.get("fifty_two_week_high")
+    lo = quote.get("fifty_two_week_low")
+    price = quote.get("price") or 0
+    range_pct = None
+    from_high = None
+    if hi and lo and hi > lo and price:
+        range_pct = round((price - lo) / (hi - lo) * 100, 1)
+        from_high = round((price - hi) / hi * 100, 2)
+
+    sector_peers: list[dict] = []
+    if report and report.get("sector"):
+        sector = report["sector"]
+        for cat in overview["categories"].values():
+            for a in cat.get("assets", []):
+                if a.get("sector") == sector and a["symbol"] != sym:
+                    sector_peers.append(a)
+        sector_peers = sector_peers[:6]
+
+    profile = {
+        "symbol": sym,
+        "asset_class": asset_class,
+        "asset_class_label": MARKET_UNIVERSE.get(asset_class, {}).get("label", asset_class.title()),
+        "quote": quote,
+        "report": report,
+        "technicals": {
+            "fifty_two_week_high": hi,
+            "fifty_two_week_low": lo,
+            "range_position_pct": range_pct,
+            "from_52w_high_pct": from_high,
+            "day_range": (
+                f"${quote.get('day_low')} – ${quote.get('day_high')}"
+                if quote.get("day_low") and quote.get("day_high") else None
+            ),
+        },
+        "peer_comparison": peers,
+        "sector_peers": sector_peers,
+        "market_breadth": overview["breadth"],
+    }
+
+    _research_cache[sym] = profile
+    _research_cache_ts[sym] = now
+    return profile

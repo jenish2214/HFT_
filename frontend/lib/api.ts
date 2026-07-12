@@ -1,36 +1,30 @@
 /** Resolve backend base URL for browser and server. */
 export function getApiBase(): string {
-  const explicit = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (explicit) {
-    return explicit.startsWith("http") ? stripTrailingSlash(explicit) : `https://${explicit}`;
-  }
-
+  // Browser always uses same-origin /api proxy (works in dev and production).
   if (typeof window !== "undefined") {
-    const { hostname } = window.location;
-    if (hostname !== "localhost" && hostname !== "127.0.0.1") {
-      return "/api";
-    }
-  }
-
-  if (process.env.NODE_ENV === "production") {
-    const serverUrl = process.env.API_URL?.trim();
-    if (serverUrl) {
-      return stripTrailingSlash(serverUrl);
-    }
     return "/api";
   }
 
-  return "http://localhost:8000";
+  const serverUrl = process.env.API_URL?.trim();
+  if (serverUrl) {
+    return normalizeUrl(serverUrl);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    return "/api";
+  }
+
+  return normalizeUrl(process.env.API_URL?.trim() || "http://127.0.0.1:8000");
 }
 
 export function getWsUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_WS_URL?.trim();
-  if (explicit) return explicit;
-
-  const base = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (base) {
-    const normalized = base.startsWith("http") ? base : `https://${base}`;
-    return `${normalized.replace(/^http/, "ws").replace(/\/$/, "")}/ws`;
+  if (explicit) {
+    if (explicit.startsWith("ws://") || explicit.startsWith("wss://")) {
+      return explicit.endsWith("/ws") ? explicit : `${explicit.replace(/\/$/, "")}/ws`;
+    }
+    const base = explicit.startsWith("http") ? explicit : `https://${explicit}`;
+    return `${base.replace(/^http/, "ws").replace(/\/$/, "")}/ws`;
   }
 
   if (typeof window !== "undefined") {
@@ -41,7 +35,7 @@ export function getWsUrl(): string {
     }
   }
 
-  return "ws://localhost:8000/ws";
+  return "ws://127.0.0.1:8000/ws";
 }
 
 export function useWebSocket(): boolean {
@@ -50,4 +44,12 @@ export function useWebSocket(): boolean {
 
 function stripTrailingSlash(url: string): string {
   return url.replace(/\/$/, "");
+}
+
+function normalizeUrl(url: string): string {
+  const trimmed = stripTrailingSlash(url.trim());
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  return `http://${trimmed}`;
 }

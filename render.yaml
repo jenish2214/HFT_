@@ -1,7 +1,11 @@
-# Render Blueprint — https://render.com/docs/blueprint-spec
+# Render Blueprint — Orion Alpha production
+# https://render.com/docs/blueprint-spec
+#
+# Deploy: push to GitHub, then open:
+# https://dashboard.render.com/blueprint/new?repo=https://github.com/jenish2214/HFT_
 services:
   - type: web
-    name: hft-api
+    name: orion-alpha-api
     runtime: docker
     dockerfilePath: ./Dockerfile
     plan: free
@@ -18,19 +22,22 @@ services:
         value: "9001"
 
   - type: web
-    name: hft-dashboard
+    name: orion-alpha-dashboard
     runtime: node
     rootDir: frontend
     plan: free
     region: oregon
-    buildCommand: npm install && npm run build
+    buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /
     envVars:
       - key: NODE_VERSION
         value: "20"
-      - key: NEXT_PUBLIC_API_URL
+      - key: NODE_ENV
+        value: production
+      # Server-side /api proxy → internal API (Render private network)
+      - key: API_URL
         fromService:
           type: web
-          name: hft-api
-          property: host
+          name: orion-alpha-api
+          property: hostport

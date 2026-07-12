@@ -6,6 +6,7 @@ import asyncio
 import json
 import os
 import random
+import re
 import time
 from contextlib import asynccontextmanager
 
@@ -26,7 +27,15 @@ from market_hours import market_session
 from strategy import MarketMaker
 from user_portfolio import UserPortfolio
 from user_orders import USER_STRATEGY, UserOrderBook
-from yfinance_feed import YFinanceFeed, fetch_watchlist
+from yfinance_feed import (
+    YFinanceFeed,
+    fetch_all_company_reports,
+    fetch_banker_desk,
+    fetch_company_report,
+    fetch_markets_overview,
+    fetch_research_profile,
+    fetch_watchlist,
+)
 
 SYMBOL = os.environ.get("HFT_SYMBOL", "AAPL")
 current_symbol = SYMBOL
@@ -83,8 +92,15 @@ def _tick_from_quote(quote: dict) -> dict:
 
 def build_state() -> dict:
     quote = feed.get_quote()
-    book = engine.get_book()
-    stats = engine.get_stats()
+    try:
+        book = engine.get_book()
+    except Exception as exc:
+        print(f"[state] engine book unavailable: {exc}")
+        book = {"book": {"bids": [], "asks": [], "mid": 0, "spread": 0}}
+    try:
+        stats = engine.get_stats()
+    except Exception:
+        stats = {"stats": {"avg_latency_ns": 0, "total_orders": 0, "total_trades": 0}}
     mark = quote.get("price") or book.get("book", {}).get("mid", 0) or 0
     session = quote.get("market") or market_session()
     try:
@@ -92,6 +108,11 @@ def build_state() -> dict:
     except Exception:
         eng_orders = []
     user_orders.sync_pending(eng_orders)
+    try:
+        watchlist = fetch_watchlist()
+    except Exception as exc:
+        print(f"[state] watchlist fetch failed: {exc}")
+        watchlist = []
     return {
         "type": "snapshot",
         "symbol": current_symbol,
@@ -102,7 +123,7 @@ def build_state() -> dict:
         "user": user.to_dict(mark),
         "user_pending_orders": user_orders.pending(),
         "user_order_history": user_orders.history,
-        "watchlist": fetch_watchlist(),
+        "watchlist": watchlist,
         "stats": stats.get("stats", {}),
         "latency_history": latency_history,
         "events": activity_log,
@@ -118,12 +139,15 @@ def build_state() -> dict:
     }
 
 
+_VALID_SYMBOL = re.compile(r"^[A-Z0-9^=.-]{2,14}$")
+
+
 def change_symbol(new_symbol: str) -> dict:
     global current_symbol, book_seeded, strategy, user, recent_trades, activity_log
     global latency_history, last_mm_order_ids
 
     sym = new_symbol.upper().strip()
-    if not sym or not sym.isalpha() or len(sym) > 6:
+    if not sym or not _VALID_SYMBOL.match(sym):
         raise ValueError(f"Invalid symbol: {new_symbol}")
 
     cancel_mm_orders()
@@ -432,6 +456,8 @@ async def trading_loop():
 async def lifespan(app: FastAPI):
     global running
     running = True
+    loop = asyncio.get_event_loop()
+    loop.run_in_executor(None, fetch_watchlist)
     task = asyncio.create_task(trading_loop())
     keepalive = asyncio.create_task(ws_keepalive_loop())
     yield
@@ -510,7 +536,31 @@ async def get_quote():
 
 @app.get("/state")
 async def get_state():
-    return await run_sync(build_state)
+    try:
+        return await run_sync(build_state)
+    except Exception as exc:
+        print(f"[state] build_state failed: {exc}")
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=503,
+            content={"status": "error", "message": "State temporarily unavailable", "detail": str(exc)},
+        )
+
+
+@app.get("/company/report")
+async def get_company_report(symbol: str = ""):
+    sym = (symbol or current_symbol).upper().strip()
+    if not sym:
+        return {"status": "error", "message": "symbol required"}
+    try:
+        return await run_sync(fetch_company_report, sym)
+    except Exception as exc:
+        print(f"[report] failed for {sym}: {exc}")
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=503,
+            content={"status": "error", "message": f"Report unavailable for {sym}", "detail": str(exc)},
+        )
 
 
 @app.get("/chart")
@@ -538,6 +588,29 @@ async def set_chart_timeframe(body: dict):
         }
     except ValueError as exc:
         return {"status": "error", "message": str(exc)}
+
+
+@app.get("/companies/reports")
+async def get_all_company_reports():
+    return {"companies": await run_sync(fetch_all_company_reports)}
+
+
+@app.get("/markets/overview")
+async def get_markets_overview():
+    return await run_sync(fetch_markets_overview)
+
+
+@app.get("/markets/banker")
+async def get_banker_desk():
+    return await run_sync(fetch_banker_desk)
+
+
+@app.get("/research/profile")
+async def get_research_profile(symbol: str = ""):
+    sym = (symbol or current_symbol).upper().strip()
+    if not sym:
+        return {"status": "error", "message": "symbol required"}
+    return await run_sync(fetch_research_profile, sym)
 
 
 @app.get("/demo/events")

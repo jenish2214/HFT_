@@ -1,26 +1,37 @@
 "use client";
 
-import { useState, useCallback, useRef, memo } from "react";
+import { useState, useCallback, useRef, memo, useEffect } from "react";
 import OrderBook from "@/components/OrderBook";
 import TradeTape from "@/components/TradeTape";
-import PortfolioSwitcher from "@/components/PortfolioSwitcher";
-import OrderTicket from "@/components/OrderTicket";
-import OrderBlotter, { type UserOrder } from "@/components/OrderBlotter";
 import BloombergCommandBar from "@/components/BloombergCommandBar";
+import BloombergFunctionBar from "@/components/BloombergFunctionBar";
+import BloombergHelpPanel from "@/components/BloombergHelpPanel";
 import BloombergWatchlist, { type WatchRow } from "@/components/BloombergWatchlist";
 import BloombergTicker from "@/components/BloombergTicker";
 import TraderHeader from "@/components/TraderHeader";
 import MarketStatusBar from "@/components/MarketStatusBar";
 import MarketDataPanel from "@/components/MarketDataPanel";
+import CompanyReportPanel, { CompanyDirectory } from "@/components/CompanyReportPanel";
+import InvestmentBankerDesk from "@/components/InvestmentBankerDesk";
+import ProResearchDesk from "@/components/ProResearchDesk";
 import BloombergTerminalChart, { type ChartBar, type ChartTimeframe } from "@/components/BloombergTerminalChart";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import type { QuickQuote } from "@/components/PanelLoading";
 import { useMarketStream } from "@/hooks/useMarketStream";
 import { getApiBase } from "@/lib/api";
+import {
+  deskColumnForFunction,
+  isFullDeskFunction,
+  mobileTabForFunction,
+  type BbFunction,
+  type MobileDeskTab,
+} from "@/lib/bloombergCommands";
+import { chartPageUrl } from "@/lib/chartIndicators";
 import {
   mergeChartBars,
   mergeChartPatch,
   sameBook,
   sameTick,
-  sameUser,
 } from "@/lib/marketDelta";
 
 export interface BookLevel {
@@ -66,20 +77,6 @@ export interface UserInfo extends StrategyInfo {
   buying_power?: number;
 }
 
-const DEFAULT_USER: UserInfo = {
-  name: "user",
-  position: 0,
-  cash: 0,
-  orders_sent: 0,
-  fills: 0,
-  initial_equity: 100_000,
-  equity: 100_000,
-  buying_power: 100_000,
-  realized_pnl: 0,
-  unrealized_pnl: 0,
-  total_pnl: 0,
-};
-
 export interface Stats {
   avg_latency_ns: number;
   total_orders: number;
@@ -116,7 +113,6 @@ function applyTickUpdate(
   msg: Record<string, unknown>,
   setters: {
     setBook: (b: Book | ((p: Book) => Book)) => void;
-    setUser: (u: UserInfo | ((p: UserInfo) => UserInfo)) => void;
     setTick: (t: TickInfo | ((p: TickInfo | null) => TickInfo | null)) => void;
     setMarket: (m: MarketSession | ((p: MarketSession | null) => MarketSession | null)) => void;
     setPriceHistory: (h: { ts: number; price: number }[] | ((p: { ts: number; price: number }[]) => { ts: number; price: number }[])) => void;
@@ -132,11 +128,6 @@ function applyTickUpdate(
   if (msg.book) {
     const book = msg.book as Book;
     setters.setBook((prev) => (sameBook(prev, book) ? prev : book));
-  }
-
-  if (msg.user) {
-    const user = msg.user as UserInfo;
-    setters.setUser((prev) => (sameUser(prev, user) ? prev : user));
   }
 
   if (msg.market) {
@@ -168,7 +159,6 @@ function applyTickUpdate(
 export default function Dashboard() {
   const [book, setBook] = useState<Book>({ bids: [], asks: [], mid: 0, spread: 0 });
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [user, setUser] = useState<UserInfo>(DEFAULT_USER);
   const [tick, setTick] = useState<TickInfo | null>(null);
   const [market, setMarket] = useState<MarketSession | null>(null);
   const [priceHistory, setPriceHistory] = useState<{ ts: number; price: number }[]>([]);
@@ -180,22 +170,22 @@ export default function Dashboard() {
   const [lastUpdateTs, setLastUpdateTs] = useState(0);
   const [symbol, setSymbol] = useState("AAPL");
   const [symbolLoading, setSymbolLoading] = useState(false);
-  const [pendingOrders, setPendingOrders] = useState<UserOrder[]>([]);
-  const [orderHistory, setOrderHistory] = useState<UserOrder[]>([]);
   const [watchlist, setWatchlist] = useState<WatchRow[]>([]);
-  const [mobileTab, setMobileTab] = useState<"chart" | "market" | "trade">("chart");
+  const [mobileTab, setMobileTab] = useState<MobileDeskTab>("chart");
+  const [bbFunction, setBbFunction] = useState<BbFunction>("FA");
+  const [bootstrapping, setBootstrapping] = useState(true);
 
   const tickMetaRef = useRef({ ts: 0 });
+  const activeDesk = deskColumnForFunction(bbFunction);
+  const fullDesk = isFullDeskFunction(bbFunction);
+  const reportMode: BbFunction = bbFunction === "DES" || bbFunction === "CN" ? bbFunction : "FA";
 
   const syncMeta = useCallback((msg: Record<string, unknown>) => {
-    if (msg.user_pending_orders) setPendingOrders(msg.user_pending_orders as UserOrder[]);
-    if (msg.user_order_history) setOrderHistory(msg.user_order_history as UserOrder[]);
     if (msg.watchlist) setWatchlist(msg.watchlist as WatchRow[]);
   }, []);
 
   const applyFullSnapshot = useCallback((msg: Record<string, unknown>) => {
     if (msg.book) setBook(msg.book as Book);
-    if (msg.user) setUser(msg.user as UserInfo);
     if (msg.market) setMarket(msg.market as MarketSession);
     if (msg.price_history) {
       setPricePoint(null);
@@ -206,9 +196,10 @@ export default function Dashboard() {
     }
     if (msg.chart_timeframe) setChartTimeframe(msg.chart_timeframe as ChartTimeframe);
     if (msg.chart_interval_label) setChartIntervalLabel(msg.chart_interval_label as string);
-    const tick = (msg.tick || msg.quote) as TickInfo | undefined;
-    if (tick?.symbol) setTick(tick);
+    const tickMsg = (msg.tick || msg.quote) as TickInfo | undefined;
+    if (tickMsg?.symbol) setTick(tickMsg);
     syncMeta(msg);
+    if (tickMsg?.price || msg.book) setBootstrapping(false);
   }, [syncMeta]);
 
   const handleMessage = useCallback((msg: Record<string, unknown>) => {
@@ -220,22 +211,13 @@ export default function Dashboard() {
       setSymbolLoading(false);
       setChartLoading(false);
       setPricePoint(null);
-      setPendingOrders([]);
-      setOrderHistory([]);
-      return;
-    }
-
-    if (msg.type === "manual_order") {
-      if (msg.trades) setTrades((prev) => [...(msg.trades as Trade[]), ...prev].slice(0, 50));
-      applyFullSnapshot(msg);
-      syncMeta(msg);
+      setBootstrapping(false);
       return;
     }
 
     if (msg.type === "tick") {
       applyTickUpdate(msg, {
         setBook,
-        setUser,
         setTick,
         setMarket,
         setPriceHistory,
@@ -257,65 +239,7 @@ export default function Dashboard() {
 
   const { connected, send } = useMarketStream(handleMessage);
 
-  const refreshState = useCallback(() => {
-    fetch(`${getApiBase()}/state`, { cache: "no-store" })
-      .then((r) => r.json())
-      .then((state) => handleMessage(state))
-      .catch(() => {});
-  }, [handleMessage]);
-
-  const cancelOrder = useCallback(async (orderId: number) => {
-    await fetch(`${getApiBase()}/order/cancel`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order_id: orderId }),
-    });
-    refreshState();
-  }, [refreshState]);
-
-  const sendOrder = useCallback(async (order: {
-    side: string;
-    type: string;
-    price: number;
-    qty: number;
-  }) => {
-    return new Promise<{ ok: boolean; message: string }>((resolve) => {
-      fetch(`${getApiBase()}/order`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(order),
-      })
-        .then((r) => r.json())
-        .then((resp) => {
-          const orderTrades = resp?.trades || [];
-          const orderInfo = resp?.order || {};
-          if (resp?.user) setUser(resp.user as UserInfo);
-          if (resp?.user_pending_orders) setPendingOrders(resp.user_pending_orders as UserOrder[]);
-          if (resp?.user_order_history) setOrderHistory(resp.user_order_history as UserOrder[]);
-          if (orderTrades.length > 0) {
-            setTrades((prev) => [...orderTrades, ...prev].slice(0, 50));
-            const t = orderTrades[0];
-            resolve({
-              ok: true,
-              message: `Filled ${order.side} ${t.qty} @ $${t.price.toFixed(2)}`,
-            });
-          } else if (orderInfo.status === "PENDING" || orderInfo.status === "PARTIAL") {
-            resolve({
-              ok: true,
-              message: `${order.side} ${order.qty} working @ $${order.price.toFixed(2)}`,
-            });
-          } else if (resp?.status === "ok") {
-            resolve({ ok: true, message: `${order.side} order accepted` });
-          } else {
-            resolve({ ok: false, message: resp?.message || "Order rejected" });
-          }
-          refreshState();
-        })
-        .catch(() => resolve({ ok: false, message: "Network error" }));
-    });
-  }, [refreshState]);
-
-  const changeSymbol = (sym: string) => {
+  const changeSymbol = useCallback((sym: string) => {
     const next = sym.toUpperCase().trim();
     if (!next || next === symbol) return;
     setSymbol(next);
@@ -326,9 +250,8 @@ export default function Dashboard() {
     setPricePoint(null);
     setChartTimeframe("1D");
     setChartIntervalLabel("1m");
-    setUser(DEFAULT_USER);
     send({ action: "symbol", symbol: next });
-  };
+  }, [symbol, send]);
 
   const changeTimeframe = useCallback((tf: ChartTimeframe) => {
     if (tf === chartTimeframe) return;
@@ -350,79 +273,143 @@ export default function Dashboard() {
       .finally(() => setChartLoading(false));
   }, [chartTimeframe, send]);
 
+  const handleBbFunction = useCallback((fn: BbFunction, sym?: string) => {
+    setBbFunction(fn);
+    setMobileTab(mobileTabForFunction(fn));
+
+    if (sym) changeSymbol(sym);
+    else if (fn === "WEI") changeSymbol("SPY");
+
+    if (fn === "HP") {
+      changeTimeframe("1Y");
+      const target = sym || symbol;
+      window.open(chartPageUrl(target, "1Y"), "_blank", "noopener,noreferrer");
+    }
+  }, [changeSymbol, changeTimeframe, symbol]);
+
+  const handleMarketSelect = useCallback((sym: string) => {
+    changeSymbol(sym);
+    setBbFunction("RES");
+    setMobileTab("research");
+  }, [changeSymbol]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && bbFunction === "HELP") setBbFunction("GP");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [bbFunction]);
+
+  const quickQuote: QuickQuote = {
+    symbol: tick?.symbol || symbol,
+    price: tick?.price,
+    change: tick?.change,
+    change_pct: tick?.change_pct,
+  };
+
   return (
     <div className="bb-terminal">
+      {bootstrapping && (
+        <div className="oa-boot-bar">
+          <LoadingSpinner size="sm" />
+          <span>Connecting to market feed — loading live quotes…</span>
+        </div>
+      )}
       <TraderHeader
         symbol={symbol}
         tick={tick}
-        user={user}
         connected={connected}
         market={market}
         onSymbolChange={changeSymbol}
         symbolLoading={symbolLoading}
       />
 
-      <BloombergCommandBar symbol={symbol} onSymbolChange={changeSymbol} />
+      <BloombergCommandBar symbol={symbol} onSymbolChange={changeSymbol} onFunction={handleBbFunction} />
+      <BloombergFunctionBar active={bbFunction} onSelect={handleBbFunction} />
       <MarketStatusBar market={market} lastUpdateTs={lastUpdateTs} />
 
-      <div className="desk">
-        <div className={`desk-col desk-col-watch${mobileTab === "market" ? " desk-mobile-active" : ""}`}>
-          <BloombergWatchlist rows={watchlist} active={symbol} onSelect={changeSymbol} />
+      <div className={`desk${fullDesk ? " desk-has-full" : ""}`}>
+        {bbFunction === "IB" ? (
+          <InvestmentBankerDesk active={symbol} onSelect={handleMarketSelect} />
+        ) : bbFunction === "RES" ? (
+          <ProResearchDesk symbol={symbol} onSelect={handleMarketSelect} quickQuote={quickQuote} />
+        ) : (
+        <>
+        <div className={`desk-col desk-col-watch${activeDesk === "watch" ? " desk-col-active" : ""}${mobileTab === "market" ? " desk-mobile-active" : ""}`}>
+          <BloombergWatchlist
+            rows={watchlist}
+            active={symbol}
+            onSelect={changeSymbol}
+            loading={bootstrapping && watchlist.length === 0}
+          />
           <MemoOrderBook book={book} symbol={symbol} />
           <MemoMarketData tick={tick} lastUpdateTs={lastUpdateTs} isLive={market?.is_regular_hours} />
         </div>
 
-        <div className={`desk-col desk-col-center${mobileTab === "chart" ? " desk-mobile-active" : ""}`}>
-          <MemoChart
-            symbol={symbol}
-            tick={tick}
-            bars={chartBars}
-            market={market}
-            timeframe={chartTimeframe}
-            intervalLabel={chartIntervalLabel}
-            loading={chartLoading}
-            onTimeframeChange={changeTimeframe}
-          />
-          <MemoOrderBlotter pending={pendingOrders} history={orderHistory} onCancel={cancelOrder} />
-          <MemoTradeTape trades={trades} isLive={market?.is_regular_hours} />
+        <div className={`desk-col desk-col-center${activeDesk === "center" ? " desk-col-active" : ""}${mobileTab === "chart" ? " desk-mobile-active" : ""}`}>
+          {bbFunction === "HELP" ? (
+            <BloombergHelpPanel onClose={() => setBbFunction("GP")} />
+          ) : (
+            <>
+              <MemoChart
+                symbol={symbol}
+                tick={tick}
+                bars={chartBars}
+                market={market}
+                timeframe={chartTimeframe}
+                intervalLabel={chartIntervalLabel}
+                loading={chartLoading}
+                onTimeframeChange={changeTimeframe}
+              />
+              <MemoTradeTape trades={trades} isLive={market?.is_regular_hours} />
+            </>
+          )}
         </div>
 
-        <div className={`desk-col desk-col-trade${mobileTab === "trade" ? " desk-mobile-active" : ""}`}>
-          <MemoPortfolio user={user} />
-          <MemoOrderTicket
-            symbol={symbol}
-            mid={book.mid}
-            bid={tick?.bid ?? 0}
-            ask={tick?.ask ?? 0}
-            connected={connected}
-            canTrade={book.mid > 0 && (book.bids.length > 0 || book.asks.length > 0)}
-            user={user}
-            onSubmit={sendOrder}
-          />
+        <div className={`desk-col desk-col-report${activeDesk === "report" ? " desk-col-active" : ""}${mobileTab === "report" ? " desk-mobile-active" : ""}`}>
+          <CompanyDirectory active={symbol} onSelect={changeSymbol} />
+          <MemoCompanyReport symbol={symbol} mode={reportMode} quickQuote={quickQuote} />
         </div>
+        </>
+        )}
       </div>
 
       <nav className="mobile-desk-nav" aria-label="Desk panels">
         <button
           type="button"
           className={`mobile-desk-tab${mobileTab === "chart" ? " mobile-desk-tab-active" : ""}`}
-          onClick={() => setMobileTab("chart")}
+          onClick={() => { setMobileTab("chart"); setBbFunction("GP"); }}
         >
           Chart
         </button>
         <button
           type="button"
           className={`mobile-desk-tab${mobileTab === "market" ? " mobile-desk-tab-active" : ""}`}
-          onClick={() => setMobileTab("market")}
+          onClick={() => { setMobileTab("market"); setBbFunction("MON"); }}
         >
           Market
         </button>
         <button
           type="button"
-          className={`mobile-desk-tab${mobileTab === "trade" ? " mobile-desk-tab-active" : ""}`}
-          onClick={() => setMobileTab("trade")}
+          className={`mobile-desk-tab${mobileTab === "report" ? " mobile-desk-tab-active" : ""}`}
+          onClick={() => { setMobileTab("report"); setBbFunction("FA"); }}
         >
-          Trade
+          Report
+        </button>
+        <button
+          type="button"
+          className={`mobile-desk-tab${mobileTab === "ibank" ? " mobile-desk-tab-active" : ""}`}
+          onClick={() => { setMobileTab("ibank"); setBbFunction("IB"); }}
+        >
+          I-Bank
+        </button>
+        <button
+          type="button"
+          className={`mobile-desk-tab${mobileTab === "research" ? " mobile-desk-tab-active" : ""}`}
+          onClick={() => { setMobileTab("research"); setBbFunction("RES"); }}
+        >
+          Research
         </button>
       </nav>
 
@@ -433,17 +420,9 @@ export default function Dashboard() {
 
 const MemoOrderBook = memo(OrderBook, (a, b) => a.symbol === b.symbol && sameBook(a.book, b.book));
 const MemoTradeTape = memo(TradeTape);
-const MemoOrderBlotter = memo(OrderBlotter);
-const MemoPortfolio = memo(PortfolioSwitcher, (a, b) => sameUser(a.user, b.user));
-const MemoOrderTicket = memo(OrderTicket, (a, b) =>
-  a.symbol === b.symbol
-  && a.mid === b.mid
-  && a.bid === b.bid
-  && a.ask === b.ask
-  && a.connected === b.connected
-  && a.canTrade === b.canTrade
-  && sameUser(a.user, b.user)
-  && a.onSubmit === b.onSubmit,
+const MemoCompanyReport = memo(
+  CompanyReportPanel,
+  (a, b) => a.symbol === b.symbol && a.mode === b.mode && a.quickQuote?.price === b.quickQuote?.price,
 );
 const MemoMarketData = memo(
   function MarketDataLive({ tick, lastUpdateTs, isLive }: { tick: TickInfo | null; lastUpdateTs: number; isLive?: boolean }) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const POPULAR = ["AAPL", "MSFT", "GOOGL", "TSLA", "AMZN", "NVDA", "META", "SPY"];
 
@@ -54,7 +55,7 @@ export default function SymbolSelector({
         defaultValue={symbol}
         key={symbol}
         placeholder="SYM"
-        maxLength={6}
+        maxLength={14}
         disabled={loading}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
@@ -77,7 +78,7 @@ export default function SymbolSelector({
           )}
         </>
       )}
-      {loading && <span style={{ fontSize: 10, color: "var(--header-muted)" }}>…</span>}
+      {loading && <LoadingSpinner size="sm" className="symbol-loading-spin" />}
     </div>
   );
 }

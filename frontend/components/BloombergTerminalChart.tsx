@@ -9,6 +9,8 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 import type { MarketSession, TickInfo } from "@/app/page";
+import { chartPageUrl } from "@/lib/chartIndicators";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export interface ChartBar {
   ts: number;
@@ -51,12 +53,12 @@ interface CrosshairInfo {
 }
 
 const CHART_THEME = {
-  bg: "#0b0e11",
-  grid: "#1e222d",
-  border: "#2a3142",
-  text: "#787b86",
-  up: "#26a69a",
-  down: "#ef5350",
+  bg: "#000000",
+  grid: "#1a1a1a",
+  border: "#2a2a2a",
+  text: "#666666",
+  up: "#3ddc84",
+  down: "#ff5252",
 };
 
 function normalizeTs(ts: unknown): number {
@@ -143,7 +145,7 @@ function toVolume(bar: ChartBar): HistogramData {
   return {
     time: toChartTime(bar.ts),
     value: bar.volume,
-    color: bar.close >= bar.open ? "rgba(38,166,154,0.45)" : "rgba(239,83,80,0.45)",
+    color: bar.close >= bar.open ? "rgba(61,220,132,0.35)" : "rgba(255,82,82,0.35)",
   };
 }
 
@@ -215,8 +217,8 @@ export default function BloombergTerminalChart({
           },
           crosshair: {
             mode: CrosshairMode.Normal,
-            vertLine: { color: "#434651", width: 1, style: 2, labelBackgroundColor: "#2962ff" },
-            horzLine: { color: "#434651", width: 1, style: 2, labelBackgroundColor: CHART_THEME.up },
+            vertLine: { color: "#333333", width: 1, style: 2, labelBackgroundColor: "#ff8c00" },
+            horzLine: { color: "#333333", width: 1, style: 2, labelBackgroundColor: "#1a1a1a" },
           },
           rightPriceScale: {
             borderColor: CHART_THEME.border,
@@ -427,9 +429,18 @@ export default function BloombergTerminalChart({
     <div className="panel bloomberg-chart-panel">
       <div className="panel-head bloomberg-chart-head">
         <div className="bloomberg-chart-title">
-          <span className="panel-title">{symbol}</span>
+          <span className="panel-title">GP — {symbol}</span>
           {isOpen && timeframe === "1D" && <span className="bloomberg-live-badge">LIVE</span>}
           {!isOpen && isLive && timeframe === "1D" && <span className="bloomberg-ext-badge">EXT</span>}
+          <a
+            href={chartPageUrl(symbol, timeframe)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="chart-fullscreen-btn mono"
+            title="Open full-screen chart with indicators"
+          >
+            FULL CHART ↗
+          </a>
         </div>
 
         <div className="chart-timeframe-row">
@@ -478,10 +489,20 @@ export default function BloombergTerminalChart({
         <div ref={containerRef} className="bloomberg-chart-container" />
         {(cleanBars.length < 2 || loading || chartError) && (
           <div className="bloomberg-chart-empty bloomberg-chart-overlay">
-            <span className="mono">
-              {chartError ?? (loading ? `Loading ${timeframe} chart…` : "Loading chart…")}
-            </span>
-            {tick && <span className="mono bloomberg-chart-last">${tick.price.toFixed(2)}</span>}
+            <LoadingSpinner
+              size="md"
+              label={chartError ?? (loading ? `Loading ${timeframe} chart…` : "Loading chart…")}
+            />
+            {tick && tick.price > 0 && (
+              <span className="mono bloomberg-chart-last oa-fast-info-inline">
+                {tick.symbol} ${tick.price.toFixed(2)}
+                {tick.change_pct != null && (
+                  <span className={tick.change_pct >= 0 ? " pnl-pos" : " pnl-neg"}>
+                    {" "}{tick.change_pct >= 0 ? "+" : ""}{tick.change_pct.toFixed(2)}%
+                  </span>
+                )}
+              </span>
+            )}
           </div>
         )}
       </div>

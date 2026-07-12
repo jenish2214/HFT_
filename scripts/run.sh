@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
-# HFT Demo — start all services with auto-restart if any process dies.
+# Orion Alpha — start all services with auto-restart if any process dies.
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CHECK_INTERVAL=8
+CHECK_INTERVAL=30
+STARTUP_GRACE=120
 
 ENGINE_PID=""
 API_PID=""
 UI_PID=""
 SHUTTING_DOWN=0
+
+ENGINE_STARTED=0
+API_STARTED=0
+UI_STARTED=0
+API_FAIL_STREAK=0
+UI_FAIL_STREAK=0
 
 free_port() {
   local port=$1
@@ -24,12 +31,38 @@ port_open() {
   lsof -ti tcp:"$1" >/dev/null 2>&1
 }
 
-api_healthy() {
-  curl -sf --max-time 3 "http://127.0.0.1:8000/health" >/dev/null 2>&1
+within_grace() {
+  local started=$1
+  [ "$started" -gt 0 ] && [ $(( $(date +%s) - started )) -lt "$STARTUP_GRACE" ]
 }
 
+api_healthy() {
+  if curl -sf --max-time 10 "http://127.0.0.1:8000/health" >/dev/null 2>&1; then
+    API_FAIL_STREAK=0
+    return 0
+  fi
+  API_FAIL_STREAK=$((API_FAIL_STREAK + 1))
+  [ "$API_FAIL_STREAK" -lt 3 ]
+}
+
+# UI health: process alive + homepage responds (not /api — avoids false restarts when API is slow).
 ui_healthy() {
-  curl -sf --max-time 3 "http://127.0.0.1:3000" >/dev/null 2>&1
+  if ! kill -0 "$UI_PID" 2>/dev/null || ! port_open 3000; then
+    UI_FAIL_STREAK=$((UI_FAIL_STREAK + 1))
+    return 1
+  fi
+  if within_grace "$UI_STARTED"; then
+    UI_FAIL_STREAK=0
+    return 0
+  fi
+  local code
+  code=$(curl -s --max-time 15 -o /dev/null -w "%{http_code}" "http://127.0.0.1:3000/" 2>/dev/null || echo "000")
+  if [ "$code" = "200" ] || [ "$code" = "304" ]; then
+    UI_FAIL_STREAK=0
+    return 0
+  fi
+  UI_FAIL_STREAK=$((UI_FAIL_STREAK + 1))
+  [ "$UI_FAIL_STREAK" -lt 3 ]
 }
 
 start_engine() {
@@ -39,6 +72,7 @@ start_engine() {
   echo "==> Starting C++ matching engine (port 9001)..."
   "$ROOT/cpp/build/hft_engine" &
   ENGINE_PID=$!
+  ENGINE_STARTED=$(date +%s)
   sleep 0.5
 }
 
@@ -57,23 +91,33 @@ start_api() {
   fi
   .venv/bin/uvicorn api_server:app --host 0.0.0.0 --port 8000 &
   API_PID=$!
-  sleep 1
+  API_STARTED=$(date +%s)
+  API_FAIL_STREAK=0
+  sleep 2
 }
 
 start_ui() {
+  local fresh_cache=${1:-0}
   echo "==> Starting Next.js dashboard (port 3000)..."
   cd "$ROOT/frontend"
   if [ ! -d "node_modules" ]; then
     npm install --silent
   fi
-  # Prevent stale webpack chunks (Cannot find module './819.js') after long dev sessions
-  rm -rf .next
+  if [ "$fresh_cache" -eq 1 ]; then
+    echo "==> Clearing .next cache..."
+    rm -rf .next
+  fi
   npm run dev &
   UI_PID=$!
-  sleep 2
+  UI_STARTED=$(date +%s)
+  UI_FAIL_STREAK=0
+  sleep 4
 }
 
 restart_engine() {
+  if within_grace "$ENGINE_STARTED"; then
+    return
+  fi
   echo "[watchdog] C++ engine down — restarting..."
   kill "$ENGINE_PID" 2>/dev/null || true
   free_port 9001
@@ -81,17 +125,23 @@ restart_engine() {
 }
 
 restart_api() {
-  echo "[watchdog] API unhealthy — restarting..."
+  if within_grace "$API_STARTED"; then
+    return
+  fi
+  echo "[watchdog] API unhealthy (${API_FAIL_STREAK} failures) — restarting..."
   kill "$API_PID" 2>/dev/null || true
   free_port 8000
   start_api
 }
 
 restart_ui() {
-  echo "[watchdog] Dashboard unhealthy — restarting (fresh .next cache)..."
+  if within_grace "$UI_STARTED"; then
+    return
+  fi
+  echo "[watchdog] Dashboard unhealthy (${UI_FAIL_STREAK} failures) — restarting (fresh .next cache)..."
   kill "$UI_PID" 2>/dev/null || true
   free_port 3000
-  start_ui
+  start_ui 1
 }
 
 watchdog() {
@@ -106,7 +156,7 @@ watchdog() {
       restart_api
     fi
 
-    if ! kill -0 "$UI_PID" 2>/dev/null || ! ui_healthy; then
+    if ! ui_healthy; then
       restart_ui
     fi
   done
@@ -129,11 +179,11 @@ free_port 3000
 
 start_engine
 start_api
-start_ui
+start_ui 1
 
 echo ""
 echo "============================================"
-echo "  HFT Demo is running (auto-restart ON)"
+echo "  Orion Alpha is running (auto-restart ON)"
 echo "  Dashboard:  http://localhost:3000"
 echo "  API:        http://localhost:8000"
 echo "  Engine:     localhost:9001 (C++)"

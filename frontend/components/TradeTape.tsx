@@ -9,7 +9,7 @@ export default function TradeTape({ trades, isLive = false }: Props) {
   return (
     <div className="panel">
       <div className="panel-head">
-        <span className="panel-title">Recent Trades</span>
+        <span className="panel-title">T&S — Time &amp; Sales</span>
         {isLive && <span className="md-live-badge">LIVE</span>}
       </div>
       <div className="panel-body tape-body">

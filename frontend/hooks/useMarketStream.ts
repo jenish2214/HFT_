@@ -11,9 +11,11 @@ function apiBase() {
 const USE_WS = useWebSocket();
 
 function pollIntervalMs(regular: boolean, live: boolean): number {
-  if (regular) return 400;
-  if (live) return 800;
-  return 2000;
+  let base = 2000;
+  if (regular) base = 400;
+  else if (live) base = 800;
+  if (pollFailures >= 3) return Math.min(15000, base * 2 ** Math.min(pollFailures - 2, 4));
+  return base;
 }
 
 let pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -27,6 +29,7 @@ const messageHandlers = new Set<(data: Record<string, unknown>) => void>();
 const marketRegularRef = { current: false };
 const marketLiveRef = { current: false };
 const streamHealthyRef = { current: false };
+let pollFailures = 0;
 
 function notifyHandlers(data: Record<string, unknown>) {
   const m = data.market as { is_regular_hours?: boolean; is_live?: boolean } | undefined;
@@ -43,11 +46,21 @@ function notifyHandlers(data: Record<string, unknown>) {
 
 async function fetchState(): Promise<boolean> {
   try {
-    const res = await fetch(`${apiBase()}/state`, { cache: "no-store" });
-    if (!res.ok) return false;
+    const res = await fetch(`${apiBase()}/state`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(25_000),
+    });
+    if (!res.ok) {
+      pollFailures += 1;
+      if (pollTimer) schedulePolling();
+      return false;
+    }
+    pollFailures = 0;
     notifyHandlers(await res.json());
     return true;
   } catch {
+    pollFailures += 1;
+    if (pollTimer) schedulePolling();
     return false;
   }
 }

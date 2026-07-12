@@ -1,4 +1,4 @@
-# HFT Demo — backend (C++ engine + Python API) for Render / Docker
+# Orion Alpha — backend (C++ engine + Python API) for Render / Docker
 FROM python:3.12-slim-bookworm
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

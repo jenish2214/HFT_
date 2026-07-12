@@ -1,4 +1,5 @@
 import type { TickInfo } from "@/app/page";
+import PanelLoading from "@/components/PanelLoading";
 
 interface Props {
   tick: TickInfo | null;
@@ -16,7 +17,9 @@ export default function MarketDataPanel({ tick, compact = false, isLive = false,
     return (
       <div className="panel">
         <div className="panel-head"><span className="panel-title">Quote</span></div>
-        <div className="panel-body dense-pad"><span className="dense-muted">Loading…</span></div>
+        <div className="panel-body dense-pad">
+          <PanelLoading message="Waiting for live quote…" skeleton="grid" />
+        </div>
       </div>
     );
   }
@@ -31,17 +34,17 @@ export default function MarketDataPanel({ tick, compact = false, isLive = false,
 
   const fields = [
     { label: "Last", value: fmtMoney(tick.price), cls: isLive ? "md-last-live" : "" },
-    { label: "Chg", value: `${up ? "+" : ""}${change.toFixed(2)}`, cls: up ? "pnl-pos" : "pnl-neg" },
-    { label: "Chg%", value: `${up ? "+" : ""}${changePct.toFixed(2)}%`, cls: up ? "pnl-pos" : "pnl-neg" },
-    { label: "Bid", value: fmtMoney(tick.bid), cls: "bid" },
-    { label: "Ask", value: fmtMoney(tick.ask), cls: "ask" },
+    { label: "Chg", value: `${up ? "+" : ""}${change.toFixed(2)}`, cls: up ? "report-emphasis" : "report-dim" },
+    { label: "Chg%", value: `${up ? "+" : ""}${changePct.toFixed(2)}%`, cls: up ? "report-emphasis" : "report-dim" },
+    { label: "Bid", value: fmtMoney(tick.bid) },
+    { label: "Ask", value: fmtMoney(tick.ask) },
     { label: "Spr", value: spread > 0 ? spread.toFixed(2) : "—" },
     { label: "Open", value: fmtMoney(tick.open) },
     { label: "Prev", value: fmtMoney(tick.prev_close) },
-    { label: "High", value: fmtMoney(tick.day_high), cls: "bid" },
-    { label: "Low", value: fmtMoney(tick.day_low), cls: "ask" },
+    { label: "High", value: fmtMoney(tick.day_high) },
+    { label: "Low", value: fmtMoney(tick.day_low) },
     { label: "Vol", value: tick.volume ? tick.volume.toLocaleString() : "—" },
-    { label: "Src", value: tick.source?.includes("live") ? "LIVE" : "YF", cls: tick.source?.includes("live") ? "pnl-pos" : "dense-muted" },
+    { label: "Src", value: tick.source?.includes("live") ? "LIVE" : "YF", cls: tick.source?.includes("live") ? "report-emphasis" : "dense-muted" },
   ];
 
   return (
@@ -50,7 +53,7 @@ export default function MarketDataPanel({ tick, compact = false, isLive = false,
         <span className="panel-title">{tick.symbol} Quote</span>
         <div className="dense-head-right">
           {isLive && tick.source?.includes("live") && <span className="md-live-badge">LIVE</span>}
-          <span className={`mono dense-chg ${up ? "pnl-pos" : "pnl-neg"}`}>
+          <span className={`mono dense-chg ${up ? "report-emphasis" : "report-dim"}`}>
             {fmtMoney(tick.price)} {up ? "+" : ""}{changePct.toFixed(2)}%
           </span>
         </div>
