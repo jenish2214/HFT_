@@ -9,23 +9,23 @@ import { PRODUCT_NAME, PRODUCT_MOTTO, PRODUCT_TAGLINE } from "@/lib/orionAlpha";
 const PURPOSE = [
   {
     step: "01",
-    title: "Understand markets",
-    text: "Move from raw prices to structured insight — sector context, fundamentals, and session data in one flow.",
+    title: "Learn how markets work",
+    text: "Move from raw prices to structured lessons — sector context, fundamentals, and how data flows through a research stack.",
   },
   {
     step: "02",
-    title: "Validate ideas",
-    text: "Test hypotheses with charts, indicators, and company reports before committing to a view.",
+    title: "Practice with demos",
+    text: "Run factor models, momentum exercises, and chart studies in a sandbox — no live trading advice.",
   },
   {
     step: "03",
-    title: "Act with clarity",
-    text: "Monitor quotes, depth, and research profiles from a single professional desk.",
+    title: "Build your toolkit",
+    text: "Explore quotes, depth, and research labs to sharpen skills before real capital is at risk.",
   },
 ];
 
 const PATHS = [
-  { href: "/research", code: "QR", title: "Quant Research", desc: "Factors, CAPM, Monte Carlo" },
+  { href: "/research", code: "QR", title: "Research Lab", desc: "Momentum & factor exercises" },
   { href: "/terminal", code: "DESK", title: "Terminal", desc: "Live quotes & market depth" },
   { href: "/chart", code: "GP", title: "Charts", desc: "Full-screen technical analysis" },
 ];
@@ -54,13 +54,13 @@ export default function HomeFinanceHub() {
         </FadeIn>
         <FadeIn delay={0.24}>
           <p className="home-hero-simple-desc">
-            A research-first platform for investors who want clarity — not noise.
-            Explore markets, validate ideas, and trade with conviction.
+            An education-first markets lab for students and self-directed learners.
+            Explore demos, study momentum and factors, and practice analysis — not predictions or trade calls.
           </p>
         </FadeIn>
         <FadeIn delay={0.32}>
           <div className="site-hero-actions home-hero-simple-actions">
-            <Link href="/research" className="site-btn site-btn-primary">Quant Research</Link>
+            <Link href="/research" className="site-btn site-btn-primary">Research Lab</Link>
             <Link href="/terminal" className="site-btn site-btn-outline">Open Terminal</Link>
             <Link href="/chart" className="site-btn site-btn-outline">View Charts</Link>
           </div>

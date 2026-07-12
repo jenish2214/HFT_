@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import RevealOnScroll from "@/components/motion/RevealOnScroll";
-import { COMPANY_NAME, PRODUCT_NAME, PRODUCT_VERSION } from "@/lib/orionAlpha";
+import { COMPANY_NAME, EDUCATION_DISCLAIMER, PRODUCT_NAME, PRODUCT_VERSION, SUPPORT_EMAIL } from "@/lib/orionAlpha";
 
 const PLATFORM_LINKS = [
   { label: "Dashboard", href: "/terminal" },
@@ -26,7 +26,8 @@ const COMPANY_LINKS = [
 ];
 
 const RESOURCE_LINKS = [
-  { label: "Documentation", href: "/about" },
+  { label: "Documentation", href: "/docs" },
+  { label: "Glossary", href: "/docs#monte-carlo" },
   { label: "API", href: "/about" },
   { label: "Help Center", href: "/terminal" },
   { label: "Community", href: "/contact" },
@@ -72,11 +73,17 @@ export default function SiteFooter() {
                 <span className="site-footer-brand-name">{PRODUCT_NAME.toUpperCase()}</span>
               </Link>
               <p className="site-footer-desc">
-                Professional financial intelligence platform delivering market analytics,
-                investment research, portfolio insights, and advanced trading tools through
-                a clean, modern experience.
+                Educational markets platform for learning analytics, factor models,
+                momentum exercises, and demo trading tools — not investment advice.
               </p>
-              <span className="site-footer-badge">Built for modern investors</span>
+              <span className="site-footer-badge">Built for learners</span>
+              <p className="site-footer-edu-note">{EDUCATION_DISCLAIMER}</p>
+              <p className="site-footer-contact mono">
+                Support:{" "}
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="site-footer-mail">
+                  {SUPPORT_EMAIL}
+                </a>
+              </p>
             </div>
 
             <FooterColumn title="Platform" links={PLATFORM_LINKS} />

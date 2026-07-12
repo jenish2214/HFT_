@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import DataNotFound from "@/components/DataNotFound";
 import SymbolSearchInput from "@/components/SymbolSearchInput";
@@ -9,13 +10,16 @@ import QuantRiskTactics from "@/components/QuantRiskTactics";
 import { ResearchDeskBar } from "@/components/QuantResearchDesk";
 import QuantSymbolCards from "@/components/QuantSymbolCards";
 import QuantCompanyProfile from "@/components/QuantCompanyProfile";
+import LabDataQualityBanner from "@/components/LabDataQualityBanner";
+import QuantEducationLab from "@/components/QuantEducationLab";
 import type { QuantResearchData } from "@/lib/quantResearchTypes";
 import { QUANT_DEFAULT_TICKERS } from "@/lib/quantResearchTypes";
 import { getQuantCache, setQuantCache } from "@/lib/quantCache";
 import { loadQuantResearch } from "@/lib/fetchQuantResearch";
 import QuantResearchFallback from "@/components/QuantResearchFallback";
 import type { ResearchProfile } from "@/lib/marketDeskTypes";
-import { PRODUCT_NAME, PRODUCT_MOTTO } from "@/lib/orionAlpha";
+import { PRODUCT_NAME, PRODUCT_MOTTO, SUPPORT_EMAIL } from "@/lib/orionAlpha";
+import { classifyLabQuality, isBrowserLocalhost, type LabDataQuality } from "@/lib/runtimeEnv";
 
 function alphaBar(value: number | null, max = 1.5) {
   if (value == null) return 0;
@@ -42,6 +46,9 @@ export default function QuantResearchDashboard() {
   const [retryKey, setRetryKey] = useState(0);
   const [liteProfile, setLiteProfile] = useState<ResearchProfile | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [labQuality, setLabQuality] = useState<LabDataQuality>("unavailable");
+  const [fetchLatencyMs, setFetchLatencyMs] = useState(0);
+  const [dataVia, setDataVia] = useState("");
   const factorsRef = useRef<HTMLDivElement>(null);
   const [factorsVisible, setFactorsVisible] = useState(false);
 
@@ -75,6 +82,8 @@ export default function QuantResearchDashboard() {
       setData(cached);
       setLiteProfile(null);
       setErrorMsg(null);
+      setLabQuality(isBrowserLocalhost() ? "full-local" : "full-remote");
+      setDataVia(isBrowserLocalhost() ? "/api (local dev)" : "/api");
     } else {
       setData(null);
       setLiteProfile(null);
@@ -85,19 +94,35 @@ export default function QuantResearchDashboard() {
     loadQuantResearch(primary, QUANT_DEFAULT_TICKERS)
       .then((result) => {
         if (cancelled) return;
+        const isLocal = isBrowserLocalhost();
+        setFetchLatencyMs(result.latencyMs);
+        setLabQuality(
+          classifyLabQuality({
+            isLocal,
+            mode: result.mode,
+            latencyMs: result.latencyMs,
+          }),
+        );
+
         if (result.mode === "full") {
+          setDataVia(result.via);
           setData(result.data);
           setLiteProfile(null);
           setErrorMsg(null);
           setQuantCache(primary, result.data);
-        } else if (result.mode === "lite" && !hasCache) {
-          setData(null);
-          setLiteProfile(result.profile);
-          setErrorMsg(null);
+        } else if (result.mode === "lite") {
+          setDataVia(result.via);
+          if (!hasCache) {
+            setData(null);
+            setLiteProfile(result.profile);
+            setErrorMsg(null);
+          }
         } else if (result.mode === "error" && !hasCache) {
           setData(null);
           setLiteProfile(null);
-          setErrorMsg(result.message);
+          setErrorMsg(
+            `${result.message} Contact ${SUPPORT_EMAIL} if this happens on deploy.`,
+          );
         }
       })
       .catch(() => {
@@ -132,9 +157,9 @@ export default function QuantResearchDashboard() {
       <section className="qr-hero site-section-wide">
         <div className="qr-hero-inner">
           <p className="site-hero-badge">{PRODUCT_MOTTO}</p>
-          <h1 className="qr-hero-title">Quant Research Desk</h1>
+          <h1 className="qr-hero-title">Quant Research Lab</h1>
           <p className="qr-hero-lead">
-            Enter a symbol and press <strong>GO</strong> to run factor research, risk metrics, and pattern analysis.
+            Enter a symbol and press <strong>GO</strong> to study momentum entry levels, factor models, and demo scorecards — for learning only.
           </p>
           <div className="qr-hero-search-wrap">
             <SymbolSearchInput
@@ -148,7 +173,10 @@ export default function QuantResearchDashboard() {
               className="qr-symbol-search"
               ariaLabel="Primary research symbol"
             />
-            <p className="qr-hero-search-hint">Type a ticker, then press <strong>GO</strong> to load your research desk.</p>
+            <p className="qr-hero-search-hint">
+              Type a ticker, then press <strong>GO</strong>. Definitions for Monte Carlo, CAPM, momentum, and more are in{" "}
+              <Link href="/docs" className="qr-hero-docs-link">Docs</Link>.
+            </p>
           </div>
           {fetching && hasSearched && !quantData && (
             <div className="qr-hero-fetch" aria-hidden>
@@ -168,7 +196,7 @@ export default function QuantResearchDashboard() {
           <div className="qr-empty-icon mono" aria-hidden>GO</div>
           <h2 className="qr-empty-title">No symbol loaded</h2>
           <p className="qr-empty-msg">
-            Research starts empty. Search a symbol above and press GO to view quant data for that ticker.
+            Research starts empty. Search a symbol above and press GO to explore educational quant exercises for that ticker.
           </p>
           <div className="qr-empty-suggestions">
             <span className="qr-empty-label mono">Try</span>
@@ -194,6 +222,15 @@ export default function QuantResearchDashboard() {
         <QuantPageSkeleton />
       )}
 
+      {hasSearched && (quantData || liteProfile) && (
+        <LabDataQualityBanner
+          quality={labQuality}
+          latencyMs={fetchLatencyMs}
+          via={dataVia}
+          className="site-section-wide"
+        />
+      )}
+
       {hasSearched && !fetching && !quantData && liteProfile && (
         <QuantResearchFallback
           symbol={primary}
@@ -216,6 +253,8 @@ export default function QuantResearchDashboard() {
       {quantData && (
         <div className={`qr-content-wrap${fetching ? " qr-content-refreshing" : ""}`}>
           <ResearchDeskBar data={quantData} primary={primary} />
+
+          <QuantEducationLab data={quantData} primary={primary} />
 
           <QuantCompanyProfile data={quantData} primary={primary} />
 
@@ -267,8 +306,8 @@ export default function QuantResearchDashboard() {
           </section>
 
           <section className="site-section site-section-wide site-section-muted">
-            <h2 className="site-section-title">Pattern recognition & probability</h2>
-            <p className="site-section-lead">Technical pattern signals for {quantData.primary} — probability-weighted setups.</p>
+            <h2 className="site-section-title">Pattern study scores</h2>
+            <p className="site-section-lead">Technical pattern exercises for {quantData.primary} — demo scores for classroom use, not forecasts.</p>
             <div className="site-prob-grid">
               {quantData.pattern_signals.map((s, i) => (
                 <article key={s.label} className={`site-prob-card site-in-view qr-prob-card ${probClass(s.probability)}`} style={{ animationDelay: `${i * 0.08}s` }}>

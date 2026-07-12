@@ -12,7 +12,9 @@ export default function ContactPageContent() {
       <main className="site-about">
         <FadeIn>
           <h1 className="site-about-title">Contact Us</h1>
-          <p className="site-about-lead">Get in touch with the Orion Alpha team</p>
+          <p className="site-about-lead">
+            Get in touch with the Orion Alpha team — especially for deploy data delays or local lab setup.
+          </p>
         </FadeIn>
       </main>
       <ContactSection id="contact" />

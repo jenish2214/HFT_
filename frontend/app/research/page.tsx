@@ -3,7 +3,7 @@ import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
 export const metadata = {
   title: `Research — ${PRODUCT_NAME}`,
-  description: `Quant research — factor engine, CAPM, risk metrics, Monte Carlo, pattern probability`,
+  description: `Educational quant lab — momentum study levels, factor models, CAPM, Monte Carlo demos (not investment advice)`,
 };
 
 export default function ResearchPage() {

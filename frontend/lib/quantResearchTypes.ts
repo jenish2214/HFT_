@@ -42,6 +42,54 @@ export interface QuantPatternSignal {
   description: string;
 }
 
+export interface QuantMomentumZone {
+  label: string;
+  price: number;
+  role: string;
+  highlight?: boolean;
+}
+
+export interface QuantMomentumLab {
+  data_found: boolean;
+  symbol?: string;
+  current_price?: number;
+  momentum_regime?: string;
+  momentum_63d_pct?: number;
+  rsi_14?: number | null;
+  study_buy_price?: number;
+  distance_from_current_pct?: number;
+  zones?: QuantMomentumZone[];
+  lesson?: string;
+  disclaimer?: string;
+}
+
+export interface QuantPredictionModel {
+  id: string;
+  name: string;
+  stack: string;
+  role: string;
+  status?: string;
+  latency_ns?: number;
+}
+
+export interface QuantScenario {
+  label: string;
+  probability: number;
+  hint: string;
+}
+
+export interface QuantPredictions {
+  outlook: "Bullish" | "Neutral" | "Bearish";
+  confidence: number;
+  headline: string;
+  bullish_score?: number;
+  scenarios: QuantScenario[];
+  signals: QuantPatternSignal[];
+  models: QuantPredictionModel[];
+  top_signal?: { label: string; probability: number } | null;
+  price_band?: { current: number; low: number; mid: number; high: number };
+}
+
 export interface QuantFactorIc {
   symbol: string;
   factor: string;
@@ -138,6 +186,8 @@ export interface QuantResearchData {
     universe_vol_pct: number | null;
   };
   methodology: string;
+  predictions?: QuantPredictions;
+  momentum_lab?: QuantMomentumLab;
   engine?: QuantEngineStats;
   message?: string;
   updated_ts?: number;

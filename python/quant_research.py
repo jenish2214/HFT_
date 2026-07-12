@@ -274,6 +274,197 @@ def pattern_signals(prices: pd.DataFrame, rets: pd.DataFrame, primary: str) -> l
     return signals
 
 
+def compute_momentum_buy_lab(
+    primary: str,
+    price_series: pd.Series,
+    factor_row: dict | None,
+) -> dict:
+    """Educational momentum entry study — SMA pullback levels, not buy advice."""
+    p = price_series.dropna()
+    if len(p) < 50:
+        return {"data_found": False, "disclaimer": "For education only. Not investment advice."}
+
+    current = float(p.iloc[-1])
+    sma20 = float(sma(p, 20).iloc[-1])
+    sma50 = float(sma(p, 50).iloc[-1])
+    mom_63 = float((factor_row or {}).get("momentum_63d") or 0)
+    rsi_v = (factor_row or {}).get("rsi_14")
+
+    if current > sma20 > sma50 and mom_63 > 0.03:
+        regime = "Strong momentum"
+        study_buy = round(sma20, 2)
+        lesson = (
+            f"In a strong momentum uptrend, textbooks often study pullbacks to the 20-day average "
+            f"({study_buy:.2f}) before trend continuation — a learning exercise, not a trade signal."
+        )
+    elif current > sma50 and mom_63 > 0:
+        regime = "Moderate momentum"
+        study_buy = round(sma50, 2)
+        lesson = (
+            f"Moderate momentum: students commonly map trend support at the 50-day average "
+            f"({study_buy:.2f}) when price holds above it."
+        )
+    else:
+        regime = "Weak / below trend"
+        study_buy = round(min(sma50, current * 0.97), 2)
+        lesson = (
+            f"Weaker momentum vs SMA50 — study waiting for trend repair near {study_buy:.2f} "
+            f"before sizing risk in paper portfolios."
+        )
+
+    dist_pct = round((study_buy - current) / current * 100, 2) if current else 0
+
+    zones = [
+        {"label": "SMA20 study level", "price": round(sma20, 2), "role": "Short-term momentum pullback"},
+        {"label": "SMA50 study level", "price": round(sma50, 2), "role": "Medium-term trend support"},
+        {
+            "label": "Momentum study entry",
+            "price": study_buy,
+            "role": f"Demo level for {regime.lower()}",
+            "highlight": True,
+        },
+    ]
+
+    return {
+        "data_found": True,
+        "symbol": primary,
+        "current_price": round(current, 2),
+        "momentum_regime": regime,
+        "momentum_63d_pct": _safe_float(mom_63 * 100, 2),
+        "rsi_14": rsi_v,
+        "study_buy_price": study_buy,
+        "distance_from_current_pct": dist_pct,
+        "zones": zones,
+        "lesson": lesson,
+        "disclaimer": "For education only. Not investment advice or a price forecast.",
+    }
+
+
+def compute_predictions(
+    primary: str,
+    patterns: list[dict],
+    mc_row: dict | None,
+    factor_row: dict | None,
+    engine: dict | None = None,
+) -> dict:
+    """Demo learning scorecard — pattern + factor + Monte Carlo blend (not a forecast)."""
+    current = (mc_row or {}).get("current")
+    p05 = (mc_row or {}).get("p05")
+    p50 = (mc_row or {}).get("p50")
+    p95 = (mc_row or {}).get("p95")
+
+    pattern_avg = sum(p["probability"] for p in patterns) / len(patterns) if patterns else 50.0
+    top_pattern = max(patterns, key=lambda p: p["probability"]) if patterns else None
+
+    mc_up = 50.0
+    if current and p50:
+        move = (float(p50) - float(current)) / float(current)
+        mc_up = min(88.0, max(12.0, 50.0 + move * 180.0))
+
+    alpha_score = 50.0
+    composite = (factor_row or {}).get("composite_alpha")
+    if composite is not None:
+        alpha_score = min(88.0, max(12.0, 50.0 + float(composite) * 35.0))
+
+    bullish_score = pattern_avg * 0.40 + mc_up * 0.35 + alpha_score * 0.25
+
+    if bullish_score >= 62:
+        outlook = "Bullish"
+        headline = f"{primary} — demo scorecard skews positive (study exercise only)"
+    elif bullish_score <= 42:
+        outlook = "Bearish"
+        headline = f"{primary} — demo scorecard skews defensive (study exercise only)"
+    else:
+        outlook = "Neutral"
+        headline = f"{primary} — mixed demo scores; use for learning, not trading decisions"
+
+    confidence = int(min(92, max(38, abs(bullish_score - 50) * 1.6 + 42)))
+
+    up = int(min(78, max(12, bullish_score * 0.85)))
+    down = int(min(78, max(12, (100 - bullish_score) * 0.75)))
+    flat = max(8, 100 - up - down)
+    total = up + flat + down
+    up = round(up * 100 / total)
+    flat = round(flat * 100 / total)
+    down = 100 - up - flat
+
+    scenarios = [
+        {
+            "label": "Higher",
+            "probability": up,
+            "hint": "Price above current in 1Y (MC median + pattern stack)",
+        },
+        {
+            "label": "Range",
+            "probability": flat,
+            "hint": "Sideways — mixed factor and technical signals",
+        },
+        {
+            "label": "Lower",
+            "probability": down,
+            "hint": "Pullback risk — mean reversion or vol expansion",
+        },
+    ]
+
+    models = [
+        {
+            "id": "cpp-engine",
+            "name": "HFT Matching Engine",
+            "stack": "C++",
+            "role": "Low-latency execution & book stats",
+            "status": (engine or {}).get("status", "offline"),
+        },
+        {
+            "id": "factor-engine",
+            "name": "Factor Engine",
+            "stack": "Python",
+            "role": "Momentum, reversal, composite α",
+            "status": "live",
+        },
+        {
+            "id": "pattern-model",
+            "name": "Pattern Model",
+            "stack": "Python",
+            "role": "RSI, MACD, Bollinger probabilities",
+            "status": "live",
+        },
+        {
+            "id": "monte-carlo",
+            "name": "Monte Carlo GBM",
+            "stack": "Python",
+            "role": "1Y price path simulation (1500 paths)",
+            "status": "live",
+        },
+    ]
+
+    payload: dict[str, Any] = {
+        "outlook": outlook,
+        "confidence": confidence,
+        "headline": headline,
+        "bullish_score": _safe_float(bullish_score, 1),
+        "scenarios": scenarios,
+        "signals": [
+            {"label": p["label"], "probability": p["probability"], "description": p["description"]}
+            for p in patterns
+        ],
+        "models": models,
+        "top_signal": {
+            "label": top_pattern["label"],
+            "probability": top_pattern["probability"],
+        } if top_pattern else None,
+    }
+
+    if current and p05 is not None and p50 is not None and p95 is not None:
+        payload["price_band"] = {
+            "current": _safe_float(current, 2),
+            "low": _safe_float(p05, 2),
+            "mid": _safe_float(p50, 2),
+            "high": _safe_float(p95, 2),
+        }
+
+    return payload
+
+
 def _company_snapshot(symbol: str) -> dict[str, Any]:
     """Slim company profile for quant research universe cards."""
     from yfinance_feed import fetch_company_report
@@ -508,6 +699,9 @@ def run_quant_research(
         for idx in cum_ret.iloc[-chart_window:].index
     ]
 
+    primary_mc = next((m for m in mc_rows if m["symbol"] == sym), mc_rows[0] if mc_rows else None)
+    primary_factor = next((f for f in factor_rows if f["symbol"] == sym), factor_rows[0] if factor_rows else None)
+
     result = {
         "primary": sym,
         "tickers": available,
@@ -547,7 +741,9 @@ def run_quant_research(
             "recommendation": recommendation,
             "universe_vol_pct": _safe_float(np.mean([r["ann_vol_pct"] for r in risk_rows if r["ann_vol_pct"]]), 2),
         },
-        "methodology": "Factor engine, CAPM, risk metrics, Monte Carlo GBM",
+        "predictions": compute_predictions(sym, patterns, primary_mc, primary_factor),
+        "momentum_lab": compute_momentum_buy_lab(sym, prices[sym], primary_factor),
+        "methodology": "Educational quant lab — factor engine, CAPM, Monte Carlo GBM (demo)",
         "updated_ts": now,
     }
 

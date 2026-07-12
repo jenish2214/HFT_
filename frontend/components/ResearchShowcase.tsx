@@ -32,7 +32,7 @@ const TERMINAL_FEATURES = [
   { title: "Price & depth", text: "Candlesticks, Level II book, time & sales" },
   { title: "Fundamentals", text: "Income, balance sheet, cash flow tabs" },
   { title: "Monitor", text: "Multi-asset watchlist with live filters" },
-  { title: "Quant research", text: "Factor engine, CAPM, Monte Carlo on /research" },
+  { title: "Quant lab", text: "Momentum study levels, factors, Monte Carlo on /research" },
 ];
 
 function ProbBar({ label, prob, desc, delay }: {
@@ -82,10 +82,10 @@ export default function ResearchShowcase() {
 
       <section className="site-section site-section-wide">
         <RevealOnScroll>
-          <h2 className="site-section-title">Pattern recognition & probability</h2>
+          <h2 className="site-section-title">Pattern study scores (demo)</h2>
           <p className="site-section-lead">
-            Screen setups with probability-weighted signals — trend, reversion, breakout,
-            and relative strength — inside the research workflow.
+            Classroom exercises with rule-based technical scores — for learning setups,
+            not price predictions or trade recommendations.
           </p>
         </RevealOnScroll>
         <div className="site-prob-grid">

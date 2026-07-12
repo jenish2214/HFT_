@@ -170,7 +170,7 @@ export function buildRiskTactics(data: QuantResearchData, primary: string): Risk
       priority: topPattern.probability >= 65 ? "medium" : "low",
       title: `Setup: ${topPattern.label}`,
       action: topPattern.probability >= 65
-        ? `${topPattern.probability}% probability — size ½ normal until confirmation; widen stop if false break.`
+        ? `${topPattern.probability}% study score — review sizing rules in paper trading before live risk.`
         : "Low conviction setup — paper trade or skip; preserve risk budget.",
       rationale: topPattern.description,
     });

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import RevealOnScroll from "@/components/motion/RevealOnScroll";
-import { COMPANY_NAME, PRODUCT_NAME } from "@/lib/orionAlpha";
+import { COMPANY_NAME, PRODUCT_NAME, SUPPORT_EMAIL } from "@/lib/orionAlpha";
 
 export default function ContactSection({ id = "contact" }: { id?: string }) {
   return (
@@ -10,14 +10,18 @@ export default function ContactSection({ id = "contact" }: { id?: string }) {
       <RevealOnScroll>
         <h2 className="site-section-title">Contact Us</h2>
         <div className="site-contact-card">
-          <p className="site-contact-brand">{PRODUCT_NAME} Professional Services</p>
+          <p className="site-contact-brand">{PRODUCT_NAME} — Education & Support</p>
           <p className="site-contact-company">Made by {COMPANY_NAME}</p>
           <p className="site-contact-text">
-            For platform access, research desk support, or general inquiries about Orion Alpha,
-            reach out through the links below.
+            Questions about the learning lab, local setup, or data delays on deploy?
+            Email us — we typically respond for platform and API issues.
           </p>
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="site-contact-email mono">
+            {SUPPORT_EMAIL}
+          </a>
           <div className="site-contact-links">
-            <Link href="/terminal" className="site-btn site-btn-primary">Open Terminal</Link>
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="site-btn site-btn-primary">Email Support</a>
+            <Link href="/research" className="site-btn site-btn-outline">Research Lab</Link>
             <Link href="/about" className="site-btn site-btn-outline">About Us</Link>
           </div>
         </div>
