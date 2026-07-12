@@ -20,23 +20,34 @@ export default function MarketStatusBar({ market, lastUpdateTs = 0 }: Props) {
     market.status === "open" ? "market-bar-open"
     : market.status === "pre" ? "market-bar-pre"
     : market.status === "after" ? "market-bar-after"
+    : market.is_weekend ? "market-bar-weekend"
     : "market-bar-closed";
 
   const isRegular = market.is_regular_hours;
   const isLive = market.is_live;
 
+  const statusPill =
+    isRegular ? "REGULAR · LIVE"
+    : market.is_weekend ? "WEEKEND · CLOSED"
+    : isLive ? "EXTENDED HOURS"
+    : "CLOSED · DELAYED";
+
   return (
     <div className={`market-bar ${cls}`}>
-      <span className={isRegular ? "market-bar-live market-bar-live-pulse" : isLive ? "market-bar-ext" : "market-bar-delayed"}>
-        {isRegular ? "Market Open" : isLive ? "Extended Hours" : "Market Closed"}
+      <span className={`market-bar-pill${isRegular ? " market-bar-live market-bar-live-pulse" : market.is_weekend ? " market-bar-weekend-pill" : isLive ? " market-bar-ext" : " market-bar-delayed"}`}>
+        {statusPill}
       </span>
-      <span className="market-bar-label">{market.local_time}</span>
-      {market.countdown && (
-        <span className="mono" style={{ color: "var(--blue)" }}>{market.countdown}</span>
+      <span className="market-bar-label">{market.label}</span>
+      {market.session_detail && (
+        <span className="market-bar-detail">{market.session_detail}</span>
       )}
+      {market.countdown && (
+        <span className="market-bar-countdown mono">{market.countdown}</span>
+      )}
+      <span className="market-bar-clock mono">{market.local_time}</span>
       {lastUpdateTs > 0 && (
-        <span className="mono market-bar-updated" style={{ marginLeft: "auto" }}>
-          Updated {fmtAgo(lastUpdateTs)}
+        <span className="mono market-bar-updated">
+          Feed {fmtAgo(lastUpdateTs)}
         </span>
       )}
     </div>

@@ -17,6 +17,7 @@ import {
 } from "@/lib/chartIndicators";
 import { fmtBarTime, sanitizeBars, toChartTime } from "@/lib/chartUtils";
 import ChartAnalysisPanel from "@/components/ChartAnalysisPanel";
+import ChartSymbolBar from "@/components/ChartSymbolBar";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
@@ -340,7 +341,11 @@ export default function FullScreenChartView({
       <header className="fs-chart-header">
         <div className="fs-chart-header-left">
           <a href="/" className="fs-back-link mono">← {PRODUCT_NAME}</a>
-          <span className="fs-chart-symbol mono">{symbol} US</span>
+          <ChartSymbolBar
+            symbol={symbol}
+            onChange={onSymbolChange}
+            loading={symbolLoading}
+          />
           {tick && (
             <span className={`fs-chart-last mono ${(tick.change ?? 0) >= 0 ? "pnl-pos" : "pnl-neg"}`}>
               ${tick.price.toFixed(2)}

@@ -1,8 +1,11 @@
-# Render Blueprint — Orion Alpha production
-# https://render.com/docs/blueprint-spec
+# Render Blueprint — Orion Alpha production (2 services)
+# API: Docker (C++ engine + Python FastAPI) · Dashboard: Next.js
 #
-# Deploy: push to GitHub, then open:
-# https://dashboard.render.com/blueprint/new?repo=https://github.com/jenish2214/HFT_
+# Deploy checklist:
+#   1. git push origin main
+#   2. Open Blueprint: https://dashboard.render.com/blueprint/new?repo=https://github.com/jenish2214/HFT_
+#   3. Apply → wait ~10 min for Docker API, then dashboard
+#   4. URLs: orion-alpha-dashboard.onrender.com · orion-alpha-api.onrender.com
 services:
   - type: web
     name: orion-alpha-api

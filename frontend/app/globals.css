@@ -2019,3 +2019,130 @@ tbody tr:hover { background: var(--surface-2); }
 .report-dir-skeleton { padding: 8px; }
 .wl-skeleton-row td { padding: 6px 4px; }
 .wl-skeleton-cell { height: 10px; width: 100%; display: block; }
+
+/* Chart symbol bar */
+.chart-symbol-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chart-symbol-bar-compact { margin-left: 6px; }
+.chart-symbol-input {
+  width: 88px;
+  padding: 2px 6px;
+  font-size: 10px;
+  background: #000;
+  border: 1px solid var(--border);
+  color: var(--bb-orange);
+}
+.chart-symbol-go {
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  background: var(--bb-orange-dim);
+  border: 1px solid var(--bb-orange);
+  color: var(--bb-orange);
+  cursor: pointer;
+}
+.chart-symbol-go:disabled { opacity: 0.5; cursor: not-allowed; }
+.chart-symbol-quick { display: flex; flex-wrap: wrap; gap: 3px; }
+.chart-symbol-chip {
+  padding: 1px 5px;
+  font-size: 8px;
+  background: transparent;
+  border: 1px solid #333;
+  color: #888;
+  cursor: pointer;
+}
+.chart-symbol-chip:hover { border-color: var(--bb-orange); color: var(--bb-orange); }
+.chart-symbol-chip-on { border-color: var(--bb-orange) !important; color: var(--bb-orange) !important; background: var(--btn-active); }
+
+/* C++ engine panel */
+.cpp-engine-panel { flex-shrink: 0; }
+.cpp-engine-body { padding: 6px 8px !important; display: flex; flex-direction: column; gap: 4px; }
+.cpp-engine-row { display: flex; justify-content: space-between; font-size: 9px; }
+.cpp-engine-label { color: var(--text-muted); }
+.cpp-engine-val { font-weight: 600; }
+.cpp-engine-tag { font-size: 8px; color: var(--text-dim); margin-top: 4px; letter-spacing: 0.06em; }
+.cpp-engine-dot { width: 6px; height: 6px; border-radius: 50%; background: #444; }
+.cpp-engine-live { background: var(--bb-green); box-shadow: 0 0 6px var(--bb-green); }
+.cpp-badge {
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border: 1px solid var(--bb-orange);
+  color: var(--bb-orange);
+}
+
+/* T&S compact */
+.tape-panel-collapsed { flex: 0 0 auto !important; max-height: 120px; }
+.tape-head { display: flex; align-items: center; justify-content: space-between; }
+.tape-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.tape-toggle-icon { font-size: 8px; color: var(--text-muted); }
+.tape-head-right { display: flex; align-items: center; gap: 6px; }
+.tape-count { font-size: 9px; color: var(--text-muted); }
+.tape-closed-tag { font-size: 8px; color: var(--text-dim); border: 1px solid #333; padding: 0 4px; }
+.tape-body-mini { max-height: 72px !important; }
+.tape-table { width: 100%; font-size: 9px; }
+.tape-time { color: var(--text-muted); font-size: 9px; }
+.tape-empty { text-align: center; padding: 12px !important; color: var(--text-muted); }
+
+/* Market status bar — professional */
+.market-bar-weekend { border-left: 3px solid #444; background: #0a0a0a; }
+.market-bar-weekend-pill { color: #888; border-color: #444; }
+.market-bar-pill {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+}
+.market-bar-detail { font-size: 9px; color: var(--text-muted); }
+.market-bar-countdown { font-size: 9px; color: var(--bb-orange); }
+.market-bar-clock { font-size: 9px; color: var(--text-muted); margin-left: auto; }
+.market-bar-pre { border-left: 3px solid #666; }
+.market-bar-after { border-left: 3px solid #666; }
+.market-bar-closed { border-left: 3px solid #333; }
+
+/* Error / 404 pages */
+.error-page-root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  padding: 24px;
+}
+.error-page-card {
+  max-width: 420px;
+  text-align: center;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 32px 24px;
+}
+.error-page-code { font-size: 48px; font-weight: 900; color: var(--bb-orange); line-height: 1; }
+.error-page-title { font-size: 16px; color: var(--text-bright); margin: 12px 0 8px; }
+.error-page-msg { font-size: 11px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; }
+.error-page-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 16px; }
+.error-page-btn {
+  padding: 6px 14px;
+  font-size: 10px;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+}
+.error-page-btn:hover { border-color: var(--bb-orange); color: var(--bb-orange); }
+.error-page-btn-primary { border-color: var(--bb-orange); color: var(--bb-orange); background: var(--bb-orange-dim); }
+.error-page-hint { font-size: 9px; color: var(--text-dim); }

@@ -11,6 +11,7 @@ import {
 import type { MarketSession, TickInfo } from "@/app/page";
 import { chartPageUrl } from "@/lib/chartIndicators";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import ChartSymbolBar from "@/components/ChartSymbolBar";
 
 export interface ChartBar {
   ts: number;
@@ -40,7 +41,9 @@ interface Props {
   timeframe: ChartTimeframe;
   intervalLabel: string;
   loading?: boolean;
+  symbolLoading?: boolean;
   onTimeframeChange: (tf: ChartTimeframe) => void;
+  onSymbolChange?: (sym: string) => void;
 }
 
 interface CrosshairInfo {
@@ -157,7 +160,9 @@ export default function BloombergTerminalChart({
   timeframe,
   intervalLabel,
   loading = false,
+  symbolLoading = false,
   onTimeframeChange,
+  onSymbolChange,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -430,6 +435,14 @@ export default function BloombergTerminalChart({
       <div className="panel-head bloomberg-chart-head">
         <div className="bloomberg-chart-title">
           <span className="panel-title">GP — {symbol}</span>
+          {onSymbolChange && (
+            <ChartSymbolBar
+              symbol={symbol}
+              onChange={onSymbolChange}
+              loading={symbolLoading}
+              compact
+            />
+          )}
           {isOpen && timeframe === "1D" && <span className="bloomberg-live-badge">LIVE</span>}
           {!isOpen && isLive && timeframe === "1D" && <span className="bloomberg-ext-badge">EXT</span>}
           <a

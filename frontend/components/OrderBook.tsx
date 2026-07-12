@@ -16,6 +16,7 @@ export default function OrderBook({ book, symbol = "AAPL" }: Props) {
     <div className="panel">
       <div className="panel-head">
         <span className="panel-title">GP — Level II · {symbol}</span>
+        <span className="cpp-badge mono">C++</span>
         <span className="mono" style={{ fontSize: 11, color: "var(--text-muted)" }}>
           Mid {book.mid > 0 ? book.mid.toFixed(2) : "—"} · Spr {book.spread > 0 ? book.spread.toFixed(2) : "—"}
         </span>

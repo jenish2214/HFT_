@@ -14,6 +14,7 @@ import MarketDataPanel from "@/components/MarketDataPanel";
 import CompanyReportPanel, { CompanyDirectory } from "@/components/CompanyReportPanel";
 import InvestmentBankerDesk from "@/components/InvestmentBankerDesk";
 import ProResearchDesk from "@/components/ProResearchDesk";
+import CppEnginePanel from "@/components/CppEnginePanel";
 import BloombergTerminalChart, { type ChartBar, type ChartTimeframe } from "@/components/BloombergTerminalChart";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import type { QuickQuote } from "@/components/PanelLoading";
@@ -86,6 +87,9 @@ export interface Stats {
 export interface MarketSession {
   status: "open" | "pre" | "after" | "closed";
   label: string;
+  session_detail?: string;
+  day_name?: string;
+  is_weekend?: boolean;
   is_live: boolean;
   is_regular_hours: boolean;
   exchange: string;
@@ -174,6 +178,7 @@ export default function Dashboard() {
   const [mobileTab, setMobileTab] = useState<MobileDeskTab>("chart");
   const [bbFunction, setBbFunction] = useState<BbFunction>("FA");
   const [bootstrapping, setBootstrapping] = useState(true);
+  const [stats, setStats] = useState<Stats | null>(null);
 
   const tickMetaRef = useRef({ ts: 0 });
   const activeDesk = deskColumnForFunction(bbFunction);
@@ -187,6 +192,7 @@ export default function Dashboard() {
   const applyFullSnapshot = useCallback((msg: Record<string, unknown>) => {
     if (msg.book) setBook(msg.book as Book);
     if (msg.market) setMarket(msg.market as MarketSession);
+    if (msg.stats) setStats(msg.stats as Stats);
     if (msg.price_history) {
       setPricePoint(null);
       setPriceHistory(msg.price_history as { ts: number; price: number }[]);
@@ -344,6 +350,7 @@ export default function Dashboard() {
             loading={bootstrapping && watchlist.length === 0}
           />
           <MemoOrderBook book={book} symbol={symbol} />
+          <CppEnginePanel stats={stats} connected={connected} />
           <MemoMarketData tick={tick} lastUpdateTs={lastUpdateTs} isLive={market?.is_regular_hours} />
         </div>
 
@@ -360,9 +367,15 @@ export default function Dashboard() {
                 timeframe={chartTimeframe}
                 intervalLabel={chartIntervalLabel}
                 loading={chartLoading}
+                symbolLoading={symbolLoading}
                 onTimeframeChange={changeTimeframe}
+                onSymbolChange={changeSymbol}
               />
-              <MemoTradeTape trades={trades} isLive={market?.is_regular_hours} />
+              <MemoTradeTape
+                trades={trades}
+                isLive={market?.is_regular_hours}
+                marketClosed={!market?.is_live || market?.is_weekend}
+              />
             </>
           )}
         </div>
@@ -441,8 +454,10 @@ const MemoChart = memo(BloombergTerminalChart, (a, b) =>
   && a.timeframe === b.timeframe
   && a.intervalLabel === b.intervalLabel
   && a.loading === b.loading
+  && a.symbolLoading === b.symbolLoading
   && a.bars === b.bars
   && a.onTimeframeChange === b.onTimeframeChange
+  && a.onSymbolChange === b.onSymbolChange
   && (a.tick?.price === b.tick?.price)
   && (a.tick?.change === b.tick?.change)
   && (a.tick?.change_pct === b.tick?.change_pct)
