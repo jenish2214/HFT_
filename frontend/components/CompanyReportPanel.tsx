@@ -6,6 +6,7 @@ import type { BbFunction } from "@/lib/bloombergCommands";
 import CompanyFundamentalsTabs from "@/components/CompanyFundamentalsTabs";
 import type { FinancialStatement, KeyStat } from "@/components/CompanyFundamentalsTabs";
 import PanelLoading, { type QuickQuote } from "@/components/PanelLoading";
+import DataNotFound from "@/components/DataNotFound";
 import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
 function panelTitle(mode: BbFunction): string {
@@ -45,6 +46,11 @@ export interface CompanyReport {
   balance_sheet?: FinancialStatement;
   cash_flow?: FinancialStatement;
   key_stats?: KeyStat[];
+  data_found?: boolean;
+  data_source?: string;
+  sources_tried?: string[];
+  message?: string | null;
+  partial?: boolean;
 }
 
 export interface CompanySummary {
@@ -69,21 +75,27 @@ interface ReportProps {
   symbol: string;
   mode?: BbFunction;
   quickQuote?: QuickQuote | null;
+  marketOpen?: boolean;
 }
 
-export default function CompanyReportPanel({ symbol, mode = "FA", quickQuote }: ReportProps) {
+export default function CompanyReportPanel({ symbol, mode = "FA", quickQuote, marketOpen = false }: ReportProps) {
   const [report, setReport] = useState<CompanyReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
   const descRef = useRef<HTMLParagraphElement>(null);
 
-  useEffect(() => {
+  const loadReport = () => {
     setLoading(true);
     fetch(`${getApiBase()}/company/report?symbol=${encodeURIComponent(symbol)}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => setReport(data as CompanyReport))
       .catch(() => setReport(null))
       .finally(() => setLoading(false));
-  }, [symbol]);
+  };
+
+  useEffect(() => {
+    loadReport();
+  }, [symbol, retryKey]);
 
   useEffect(() => {
     if ((mode === "DES" || mode === "CN") && descRef.current) {
@@ -103,17 +115,26 @@ export default function CompanyReportPanel({ symbol, mode = "FA", quickQuote }: 
             message={`Loading ${symbol} fundamentals…`}
             quote={quote.price ? quote : { symbol }}
             skeleton="report"
+            marketOpen={marketOpen}
           />
         </div>
       </div>
     );
   }
 
-  if (!report) {
+  if (!report || report.data_found === false) {
     return (
       <div className="panel report-panel">
         <div className="panel-head"><span className="panel-title">{title}</span></div>
-        <div className="panel-body report-body"><span className="report-muted">Report unavailable</span></div>
+        <div className="panel-body report-body">
+          <DataNotFound
+            symbol={symbol}
+            message={report?.message ?? undefined}
+            sourcesTried={report?.sources_tried}
+            source={report?.data_source}
+            onRetry={() => setRetryKey((k) => k + 1)}
+          />
+        </div>
       </div>
     );
   }
@@ -126,6 +147,9 @@ export default function CompanyReportPanel({ symbol, mode = "FA", quickQuote }: 
         <div>
           <span className="panel-title">{title}</span>
           <div className="report-company-name">{report.name}</div>
+          {report.partial && (
+            <p className="oa-data-partial-note mono">{report.message ?? "Limited data — try again later for full fundamentals."}</p>
+          )}
         </div>
         <span className="mono report-symbol bb-orange-text">{report.symbol} US</span>
         <a

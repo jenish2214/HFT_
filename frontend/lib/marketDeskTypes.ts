@@ -51,6 +51,10 @@ export interface ResearchProfile {
   asset_class: AssetClass;
   asset_class_label: string;
   quote: MarketAsset;
+  data_found?: boolean;
+  data_source?: string;
+  sources_tried?: string[];
+  message?: string | null;
   report: {
     symbol: string;
     name: string;

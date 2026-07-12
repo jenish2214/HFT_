@@ -1,7 +1,6 @@
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
-import ContactSection from "@/components/ContactSection";
-import { ORION_FEATURES, PRODUCT_NAME, PRODUCT_TAGLINE } from "@/lib/orionAlpha";
+import { ORION_FEATURES, PRODUCT_NAME, PRODUCT_MOTTO, PRODUCT_TAGLINE } from "@/lib/orionAlpha";
 
 export const metadata = {
   title: `About — ${PRODUCT_NAME}`,
@@ -14,7 +13,7 @@ export default function AboutPage() {
       <SiteNav />
       <main className="site-about">
         <h1 className="site-about-title">About {PRODUCT_NAME}</h1>
-        <p className="site-about-lead">{PRODUCT_TAGLINE}</p>
+        <p className="site-about-lead">{PRODUCT_MOTTO} · {PRODUCT_TAGLINE}</p>
 
         <section className="site-about-block">
           <h2>What is Orion Alpha?</h2>
@@ -52,8 +51,6 @@ export default function AboutPage() {
           <Link href="/" className="site-btn site-btn-outline">Home</Link>
         </div>
       </main>
-
-      <ContactSection />
 
       <footer className="site-footer">{PRODUCT_NAME}</footer>
     </div>

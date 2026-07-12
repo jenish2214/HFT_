@@ -5,7 +5,6 @@ import type { BbFunction } from "@/lib/bloombergCommands";
 const FUNCTIONS: { key: BbFunction; label: string }[] = [
   { key: "GP", label: "Graph" },
   { key: "IB", label: "I-Bank" },
-  { key: "RES", label: "Research" },
   { key: "FA", label: "Fundamentals" },
   { key: "DES", label: "Description" },
   { key: "CN", label: "Company News" },

@@ -2,6 +2,7 @@
 
 export const PRODUCT_NAME = "Orion Alpha";
 export const PRODUCT_TAGLINE = "Global Markets Research Terminal";
+export const PRODUCT_MOTTO = "Deep Research";
 export const PRODUCT_VERSION = "1.0";
 export const COMPANY_NAME = "BSj infotech";
 
@@ -79,10 +80,10 @@ export const ORION_FEATURES = [
     details: "Global markets overview — top gainers/losers, macro headlines, all asset classes in one desk.",
   },
   {
-    id: "res",
-    key: "RES",
-    title: "Pro Research Desk",
-    details: "Deep research profile — technicals, 52-week range, peer comparison, sector peers, full fundamentals.",
+    id: "quant",
+    key: "RESEARCH",
+    title: "Quant Research Page",
+    details: "/research — factor engine, CAPM, risk metrics, Monte Carlo, company profiles, and interactive charts.",
   },
   {
     id: "wei",

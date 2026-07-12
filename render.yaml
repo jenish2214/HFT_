@@ -1,5 +1,5 @@
 # Render Blueprint — Orion Alpha production (2 services)
-# API: Docker (C++ engine + Python FastAPI) · Dashboard: Next.js
+# API: Docker (C++ engine + Python FastAPI + quant research) · Dashboard: Next.js
 #
 # Deploy checklist:
 #   1. git push origin main
@@ -23,6 +23,11 @@ services:
         value: 127.0.0.1
       - key: HFT_ENGINE_PORT
         value: "9001"
+      - key: ALLOWED_ORIGINS
+        fromService:
+          type: web
+          name: orion-alpha-dashboard
+          property: host
 
   - type: web
     name: orion-alpha-dashboard

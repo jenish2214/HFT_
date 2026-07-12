@@ -8,6 +8,7 @@ import type { ResearchProfile } from "@/lib/marketDeskTypes";
 import { ASSET_CLASS_LABELS } from "@/lib/marketDeskTypes";
 import { PRODUCT_NAME } from "@/lib/orionAlpha";
 import PanelLoading, { type QuickQuote } from "@/components/PanelLoading";
+import DataNotFound from "@/components/DataNotFound";
 import { MarketAssetTable } from "@/components/MarketAssetTable";
 import { chartPageUrl } from "@/lib/chartIndicators";
 
@@ -15,6 +16,7 @@ interface Props {
   symbol: string;
   onSelect: (sym: string) => void;
   quickQuote?: QuickQuote | null;
+  marketOpen?: boolean;
 }
 
 function fmt(val: string | number | null | undefined, suffix = ""): string {
@@ -22,9 +24,10 @@ function fmt(val: string | number | null | undefined, suffix = ""): string {
   return `${val}${suffix}`;
 }
 
-export default function ProResearchDesk({ symbol, onSelect, quickQuote }: Props) {
+export default function ProResearchDesk({ symbol, onSelect, quickQuote, marketOpen = false }: Props) {
   const [profile, setProfile] = useState<ResearchProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -33,7 +36,7 @@ export default function ProResearchDesk({ symbol, onSelect, quickQuote }: Props)
       .then((d) => setProfile(d as ResearchProfile))
       .catch(() => setProfile(null))
       .finally(() => setLoading(false));
-  }, [symbol]);
+  }, [symbol, retryKey]);
 
   if (loading && !profile) {
     const quote: QuickQuote = quickQuote ?? { symbol };
@@ -45,15 +48,23 @@ export default function ProResearchDesk({ symbol, onSelect, quickQuote }: Props)
           message={`Loading research profile…`}
           quote={quote.price ? quote : { symbol }}
           skeleton="desk"
+          marketOpen={marketOpen}
         />
       </div>
     );
   }
 
-  if (!profile) {
+  if (!profile || (profile.data_found === false && !profile.quote?.price)) {
     return (
       <div className="desk-full res-desk">
-        <div className="desk-full-loading mono">Research data unavailable</div>
+        <DataNotFound
+          symbol={symbol}
+          title="Research data not found"
+          message={profile?.message ?? undefined}
+          sourcesTried={profile?.sources_tried}
+          source={profile?.data_source}
+          onRetry={() => setRetryKey((k) => k + 1)}
+        />
       </div>
     );
   }

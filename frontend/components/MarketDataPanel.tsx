@@ -4,7 +4,7 @@ import PanelLoading from "@/components/PanelLoading";
 interface Props {
   tick: TickInfo | null;
   compact?: boolean;
-  isLive?: boolean;
+  marketOpen?: boolean;
   lastUpdateTs?: number;
 }
 
@@ -12,13 +12,13 @@ function fmtMoney(n?: number): string {
   return n && n > 0 ? `$${n.toFixed(2)}` : "—";
 }
 
-export default function MarketDataPanel({ tick, compact = false, isLive = false, lastUpdateTs = 0 }: Props) {
+export default function MarketDataPanel({ tick, compact = false, marketOpen = false, lastUpdateTs = 0 }: Props) {
   if (!tick) {
     return (
       <div className="panel">
         <div className="panel-head"><span className="panel-title">Quote</span></div>
         <div className="panel-body dense-pad">
-          <PanelLoading message="Waiting for live quote…" skeleton="grid" />
+          <PanelLoading message="Waiting for quote…" skeleton="grid" marketOpen={marketOpen} />
         </div>
       </div>
     );
@@ -33,7 +33,7 @@ export default function MarketDataPanel({ tick, compact = false, isLive = false,
   const up = change >= 0;
 
   const fields = [
-    { label: "Last", value: fmtMoney(tick.price), cls: isLive ? "md-last-live" : "" },
+    { label: "Last", value: fmtMoney(tick.price), cls: marketOpen ? "md-last-live" : "" },
     { label: "Chg", value: `${up ? "+" : ""}${change.toFixed(2)}`, cls: up ? "report-emphasis" : "report-dim" },
     { label: "Chg%", value: `${up ? "+" : ""}${changePct.toFixed(2)}%`, cls: up ? "report-emphasis" : "report-dim" },
     { label: "Bid", value: fmtMoney(tick.bid) },
@@ -44,7 +44,7 @@ export default function MarketDataPanel({ tick, compact = false, isLive = false,
     { label: "High", value: fmtMoney(tick.day_high) },
     { label: "Low", value: fmtMoney(tick.day_low) },
     { label: "Vol", value: tick.volume ? tick.volume.toLocaleString() : "—" },
-    { label: "Src", value: tick.source?.includes("live") ? "LIVE" : "YF", cls: tick.source?.includes("live") ? "report-emphasis" : "dense-muted" },
+    { label: "Src", value: marketOpen && tick.source?.includes("live") ? "LIVE" : "YF", cls: marketOpen && tick.source?.includes("live") ? "report-emphasis" : "dense-muted" },
   ];
 
   return (
@@ -52,7 +52,7 @@ export default function MarketDataPanel({ tick, compact = false, isLive = false,
       <div className="panel-head dense-head">
         <span className="panel-title">{tick.symbol} Quote</span>
         <div className="dense-head-right">
-          {isLive && tick.source?.includes("live") && <span className="md-live-badge">LIVE</span>}
+          {marketOpen && tick.source?.includes("live") && <span className="md-live-badge">LIVE</span>}
           <span className={`mono dense-chg ${up ? "report-emphasis" : "report-dim"}`}>
             {fmtMoney(tick.price)} {up ? "+" : ""}{changePct.toFixed(2)}%
           </span>
@@ -82,7 +82,7 @@ export default function MarketDataPanel({ tick, compact = false, isLive = false,
           </div>
         )}
 
-        {isLive && lastUpdateTs > 0 && (
+        {marketOpen && lastUpdateTs > 0 && (
           <div className="md-updated mono dense-updated">
             Updated {new Date(lastUpdateTs * 1000).toLocaleTimeString()}
           </div>

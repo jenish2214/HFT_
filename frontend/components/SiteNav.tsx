@@ -7,6 +7,7 @@ import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
 const NAV_ITEMS = [
   { href: "/", label: "Home" },
+  { href: "/research", label: "Research" },
   { href: "/about", label: "About" },
   { href: "/terminal", label: "Terminal" },
   { href: "/chart", label: "Charts" },

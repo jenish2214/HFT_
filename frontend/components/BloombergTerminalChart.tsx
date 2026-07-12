@@ -12,6 +12,7 @@ import {
   CrosshairMode,
 } from "lightweight-charts";
 import type { MarketSession, TickInfo } from "@/lib/marketTypes";
+import { isMarketOpen } from "@/lib/marketTypes";
 import { chartPageUrl } from "@/lib/chartIndicators";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ChartSymbolBar from "@/components/ChartSymbolBar";
@@ -183,8 +184,7 @@ export default function BloombergTerminalChart({
 
   timeframeRef.current = timeframe;
 
-  const isLive = market?.is_live ?? false;
-  const isOpen = market?.is_regular_hours ?? false;
+  const marketOpen = isMarketOpen(market);
   const chg = tick?.change ?? 0;
   const chgPct = tick?.change_pct ?? 0;
   const up = chg >= 0;
@@ -439,7 +439,7 @@ export default function BloombergTerminalChart({
               compact
             />
           )}
-          {isOpen && timeframe === "1D" && <span className="bloomberg-live-badge">LIVE</span>}
+          {marketOpen && timeframe === "1D" && <span className="bloomberg-live-badge">LIVE</span>}
           <a
             href={chartPageUrl(symbol, timeframe)}
             target="_blank"
@@ -484,8 +484,8 @@ export default function BloombergTerminalChart({
               </span>
             </>
           )}
-          {market?.status === "open" && (
-            <span className="chart-market-tag dense-fixed-tag chart-market-open">OPEN</span>
+          {marketOpen && (
+            <span className="chart-market-tag dense-fixed-tag chart-market-open">LIVE</span>
           )}
         </div>
       )}

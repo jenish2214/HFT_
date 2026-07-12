@@ -8,6 +8,13 @@ from dataclasses import dataclass, field
 
 import yfinance as yf
 
+from google_finance_feed import fetch_google_quote
+from market_data_provider import (
+    DATA_NOT_FOUND_MSG,
+    fetch_quote_with_fallback,
+    merge_quote_into_row,
+    report_has_data,
+)
 from market_hours import market_session
 
 # yfinance period/interval pairs (valid combinations)
@@ -65,6 +72,7 @@ class YFinanceFeed:
     _ticker: yf.Ticker = field(init=False, repr=False)
     _session_started: float = field(default=0.0, init=False)
     _refresh_failures: int = field(default=0, init=False)
+    _data_source: str = field(default="yfinance", init=False)
 
     def __post_init__(self):
         self._session_started = time.time()
@@ -255,6 +263,22 @@ class YFinanceFeed:
                     if self.open <= 0:
                         self.open = round(float(hist["Open"].iloc[0]), 2)
 
+            if self.price <= 0:
+                gq = fetch_google_quote(self.symbol)
+                if gq and gq.get("price", 0) > 0:
+                    self.price = float(gq["price"])
+                    self.bid = float(gq.get("bid") or self.price - 0.01)
+                    self.ask = float(gq.get("ask") or self.price + 0.01)
+                    self.change = float(gq.get("change") or 0)
+                    self.change_pct = float(gq.get("change_pct") or 0)
+                    if gq.get("prev_close"):
+                        self.prev_close = float(gq["prev_close"])
+                    self._data_source = "google-finance"
+                else:
+                    self._data_source = "none"
+            else:
+                self._data_source = "yfinance-live" if market_session()["is_live"] else "yfinance-delayed"
+
             if self.prev_close > 0 and self.price > 0:
                 self.change = round(self.price - self.prev_close, 2)
                 self.change_pct = round((self.change / self.prev_close) * 100, 2)
@@ -284,7 +308,7 @@ class YFinanceFeed:
         self._refresh()
         self.tick_count += 1
         session = market_session()
-        source = "yfinance-live" if session["is_live"] else "yfinance-delayed"
+        source = getattr(self, "_data_source", "yfinance-live" if session["is_live"] else "yfinance-delayed")
         return Tick(
             symbol=self.symbol,
             price=self.price,
@@ -304,6 +328,10 @@ class YFinanceFeed:
     def get_quote(self) -> dict:
         self._refresh(force=True)
         session = market_session()
+        data_found = self.price > 0
+        source = getattr(self, "_data_source", "yfinance-live" if session["is_live"] else "yfinance-delayed")
+        if not data_found:
+            source = "none"
         return {
             "symbol": self.symbol,
             "price": self.price,
@@ -317,7 +345,10 @@ class YFinanceFeed:
             "day_low": self.day_low,
             "open": self.open,
             "prev_close": self.prev_close,
-            "source": "yfinance-live" if session["is_live"] else "yfinance-delayed",
+            "source": source,
+            "data_found": data_found,
+            "sources_tried": ["yfinance", "google-finance"] if not data_found else [source.split("-")[0] if "-" in source else source],
+            "message": None if data_found else DATA_NOT_FOUND_MSG,
             "market": session,
             "price_history": self.price_history[-60:],
             "chart_bars": self.chart_bars,
@@ -682,6 +713,24 @@ def fetch_company_report(symbol: str) -> dict:
     except Exception as exc:
         print(f"[yfinance] company report failed ({sym}): {exc}")
 
+    if not report_has_data(report):
+        gq = fetch_quote_with_fallback(sym)
+        if gq.get("data_found"):
+            report["name"] = gq.get("name") or report["name"]
+            report["data_source"] = gq.get("source", "google-finance")
+            report["data_found"] = True
+            report["partial"] = True
+            report["message"] = "Limited data from Google Finance. Full fundamentals not available — try again later."
+        else:
+            report["data_found"] = False
+            report["data_source"] = "none"
+            report["sources_tried"] = gq.get("sources_tried", ["yfinance", "google-finance"])
+            report["message"] = DATA_NOT_FOUND_MSG
+    else:
+        report["data_found"] = True
+        report["data_source"] = "yfinance"
+        report["partial"] = False
+
     _report_cache[sym] = report
     _report_cache_ts[sym] = now
     return report
@@ -726,37 +775,44 @@ def fetch_all_company_reports() -> list[dict]:
 
 
 def _fetch_one_watch_row(sym: str) -> dict:
-    """Single watchlist row — fast_info only (no slow t.info)."""
+    """Single watchlist row — yfinance with Google Finance fallback."""
     meta = ORION_SYMBOL_META.get(sym, {})
+    row: dict = {
+        "symbol": sym,
+        "name": meta.get("name") or sym,
+        "sector": None,
+        "asset_class": meta.get("asset_class"),
+        "asset_class_label": meta.get("asset_class_label"),
+        "price": 0,
+        "change": 0,
+        "change_pct": 0,
+    }
     try:
-        t = yf.Ticker(sym)
-        fi = t.fast_info
-        price = float(getattr(fi, "last_price", 0) or getattr(fi, "lastPrice", 0) or 0)
-        prev = float(getattr(fi, "previous_close", 0) or getattr(fi, "previousClose", 0) or 0)
-        chg = price - prev if price and prev else 0.0
-        chg_pct = (chg / prev * 100) if prev else 0.0
-        return {
-            "symbol": sym,
-            "name": meta.get("name") or sym,
-            "sector": None,
-            "asset_class": meta.get("asset_class"),
-            "asset_class_label": meta.get("asset_class_label"),
-            "price": round(price, 4 if meta.get("asset_class") == "fx" else 2),
-            "change": round(chg, 4 if meta.get("asset_class") == "fx" else 2),
-            "change_pct": round(chg_pct, 2),
-        }
+        quote = fetch_quote_with_fallback(sym)
+        dec = 4 if meta.get("asset_class") == "fx" else 2
+        if quote.get("data_found"):
+            row.update({
+                "name": quote.get("name") or row["name"],
+                "price": round(float(quote["price"]), dec),
+                "change": round(float(quote.get("change") or 0), dec),
+                "change_pct": round(float(quote.get("change_pct") or 0), 2),
+                "source": quote.get("source"),
+                "data_found": True,
+            })
+        else:
+            row.update({
+                "data_found": False,
+                "source": "none",
+                "sources_tried": quote.get("sources_tried"),
+                "message": quote.get("message", DATA_NOT_FOUND_MSG),
+            })
     except Exception:
         cached = next((r for r in _watchlist_cache if r["symbol"] == sym), None)
-        return cached or {
-            "symbol": sym,
-            "name": meta.get("name") or sym,
-            "sector": None,
-            "asset_class": meta.get("asset_class"),
-            "asset_class_label": meta.get("asset_class_label"),
-            "price": 0,
-            "change": 0,
-            "change_pct": 0,
-        }
+        if cached:
+            return cached
+        row["data_found"] = False
+        row["message"] = DATA_NOT_FOUND_MSG
+    return row
 
 
 def _refresh_watchlist_sync() -> list[dict]:
@@ -846,9 +902,17 @@ def _fetch_market_row(sym: str, name: str | None = None, asset_class: str | None
             "fifty_two_week_low": _safe_float(info.get("fiftyTwoWeekLow")),
             "sector": info.get("sector"),
             "currency": info.get("currency"),
+            "source": "yfinance",
+            "data_found": price > 0,
         })
     except Exception as exc:
         print(f"[yfinance] market row failed ({sym}): {exc}")
+
+    if row.get("price", 0) <= 0:
+        quote = fetch_quote_with_fallback(sym)
+        merge_quote_into_row(row, quote)
+    else:
+        row["data_found"] = True
     return row
 
 
@@ -971,6 +1035,10 @@ def fetch_research_profile(symbol: str) -> dict:
         "asset_class_label": MARKET_UNIVERSE.get(asset_class, {}).get("label", asset_class.title()),
         "quote": quote,
         "report": report,
+        "data_found": bool(quote.get("data_found") or (report and report.get("data_found"))),
+        "data_source": quote.get("source") or (report or {}).get("data_source"),
+        "sources_tried": quote.get("sources_tried") or (report or {}).get("sources_tried") or ["yfinance", "google-finance"],
+        "message": None if quote.get("data_found") else quote.get("message", DATA_NOT_FOUND_MSG),
         "technicals": {
             "fifty_two_week_high": hi,
             "fifty_two_week_low": lo,

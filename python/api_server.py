@@ -6,12 +6,23 @@ import asyncio
 import json
 import os
 import random
-import re
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+
+from security import (
+    SECURITY_HEADERS,
+    allowed_origins,
+    check_rate_limit,
+    security_status,
+    validate_order_payload,
+    validate_symbol,
+    validate_timeframe,
+)
 
 from demo_events import (
     demo_intro_events,
@@ -27,6 +38,7 @@ from market_hours import market_session
 from strategy import MarketMaker
 from user_portfolio import UserPortfolio
 from user_orders import USER_STRATEGY, UserOrderBook
+from quant_research import run_quant_research
 from yfinance_feed import (
     YFinanceFeed,
     fetch_all_company_reports,
@@ -139,16 +151,11 @@ def build_state() -> dict:
     }
 
 
-_VALID_SYMBOL = re.compile(r"^[A-Z0-9^=.-]{2,14}$")
-
-
 def change_symbol(new_symbol: str) -> dict:
     global current_symbol, book_seeded, strategy, user, recent_trades, activity_log
     global latency_history, last_mm_order_ids
 
-    sym = new_symbol.upper().strip()
-    if not sym or not _VALID_SYMBOL.match(sym):
-        raise ValueError(f"Invalid symbol: {new_symbol}")
+    sym = validate_symbol(new_symbol)
 
     cancel_mm_orders()
     feed.set_symbol(sym)
@@ -164,7 +171,7 @@ def change_symbol(new_symbol: str) -> dict:
 
     tick = feed.next_tick()
     if tick.price <= 0:
-        raise ValueError(f"No quote found for {sym}")
+        raise ValueError(f"No quote found for {sym}. Data not found — try again later. (yfinance & Google Finance)")
 
     mid = (tick.bid + tick.ask) / 2 if tick.bid and tick.ask else tick.price
     seed_order_book(mid)
@@ -482,12 +489,35 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="HFT Demo API", lifespan=lifespan)
 
+
+class SecurityMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        client = request.client.host if request.client else "unknown"
+        if not check_rate_limit(client):
+            return JSONResponse(
+                status_code=429,
+                content={"status": "error", "message": "Rate limit exceeded"},
+                headers=SECURITY_HEADERS,
+            )
+        response = await call_next(request)
+        for key, value in SECURITY_HEADERS.items():
+            response.headers[key] = value
+        return response
+
+
+app.add_middleware(SecurityMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=allowed_origins(),
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Accept", "Content-Type"],
 )
+
+
+@app.get("/security/status")
+async def get_security_status():
+    return security_status()
 
 
 @app.get("/health")
@@ -553,7 +583,10 @@ async def get_company_report(symbol: str = ""):
     if not sym:
         return {"status": "error", "message": "symbol required"}
     try:
+        sym = validate_symbol(sym)
         return await run_sync(fetch_company_report, sym)
+    except ValueError as exc:
+        return JSONResponse(status_code=400, content={"status": "error", "message": str(exc)})
     except Exception as exc:
         print(f"[report] failed for {sym}: {exc}")
         from fastapi.responses import JSONResponse
@@ -579,6 +612,7 @@ async def get_chart(timeframe: str = ""):
 async def set_chart_timeframe(body: dict):
     tf = body.get("timeframe", "1D")
     try:
+        tf = validate_timeframe(tf)
         state = await run_sync(change_timeframe, tf)
         await broadcast({"type": "timeframe_changed", **state})
         return {
@@ -605,12 +639,52 @@ async def get_banker_desk():
     return await run_sync(fetch_banker_desk)
 
 
+@app.get("/research/quant")
+async def get_quant_research(symbol: str = "AAPL", tickers: str = ""):
+    sym = (symbol or "AAPL").upper().strip()
+    try:
+        sym = validate_symbol(sym)
+        ticker_list = None
+        if tickers.strip():
+            ticker_list = [validate_symbol(t.strip()) for t in tickers.split(",") if t.strip()]
+        result = await run_sync(run_quant_research, sym, ticker_list)
+        try:
+            stats = await run_sync(engine.get_stats)
+            result["engine"] = {
+                "source": "cpp-matching-engine",
+                "avg_latency_ns": stats.get("stats", {}).get("avg_latency_ns", 0),
+                "total_orders": stats.get("stats", {}).get("total_orders", 0),
+                "total_trades": stats.get("stats", {}).get("total_trades", 0),
+            }
+        except Exception:
+            result["engine"] = {"source": "cpp-matching-engine", "status": "offline"}
+        return result
+    except ValueError as exc:
+        return JSONResponse(status_code=400, content={"status": "error", "message": str(exc)})
+    except Exception as exc:
+        print(f"[quant] research failed: {exc}")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "data_found": False,
+                "message": "Quant research data not found. Please try again later.",
+                "sources_tried": ["yfinance", "python-quant-engine"],
+                "detail": str(exc),
+            },
+        )
+
+
 @app.get("/research/profile")
 async def get_research_profile(symbol: str = ""):
     sym = (symbol or current_symbol).upper().strip()
     if not sym:
         return {"status": "error", "message": "symbol required"}
-    return await run_sync(fetch_research_profile, sym)
+    try:
+        sym = validate_symbol(sym)
+        return await run_sync(fetch_research_profile, sym)
+    except ValueError as exc:
+        return JSONResponse(status_code=400, content={"status": "error", "message": str(exc)})
 
 
 @app.get("/demo/events")
@@ -642,10 +716,14 @@ def apply_user_fills(side: str, resp: dict, strategy_id: str) -> list[dict]:
 
 @app.post("/order")
 async def manual_order(body: dict):
-    side = body["side"]
-    otype = body.get("type", "LIMIT")
-    price = body.get("price", 0)
-    qty = body["qty"]
+    try:
+        order = validate_order_payload(body)
+    except ValueError as exc:
+        return JSONResponse(status_code=400, content={"status": "error", "message": str(exc)})
+    side = order["side"]
+    otype = order["type"]
+    price = order["price"]
+    qty = order["qty"]
     push_event(gateway_event(side, otype, price, qty, USER_STRATEGY))
     resp = await run_sync(engine.submit_order, side, otype, price, qty, USER_STRATEGY)
     push_event(engine_event(resp.get("latency_ns", 0), len(resp.get("trades", []))))

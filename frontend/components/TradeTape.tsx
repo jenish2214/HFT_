@@ -5,13 +5,12 @@ import type { Trade } from "@/lib/marketTypes";
 
 interface Props {
   trades: Trade[];
-  isLive?: boolean;
-  marketClosed?: boolean;
+  marketOpen?: boolean;
 }
 
 const STORAGE_KEY = "oa-tape-expanded";
 
-export default function TradeTape({ trades, isLive = false, marketClosed = false }: Props) {
+export default function TradeTape({ trades, marketOpen = false }: Props) {
   const [expanded, setExpanded] = useState(true);
 
   useEffect(() => {
@@ -45,10 +44,7 @@ export default function TradeTape({ trades, isLive = false, marketClosed = false
           <span className="tape-toggle-icon mono">{expanded ? "▼" : "▶"}</span>
         </button>
         <div className="tape-head-right">
-          {marketClosed && !isLive && (
-            <span className="tape-closed-tag mono">CLOSED</span>
-          )}
-          {isLive && <span className="md-live-badge">LIVE</span>}
+          {marketOpen && <span className="md-live-badge">LIVE</span>}
           <span className="tape-count mono">{trades.length}</span>
         </div>
       </div>
@@ -66,12 +62,12 @@ export default function TradeTape({ trades, isLive = false, marketClosed = false
             {visible.length === 0 && (
               <tr>
                 <td colSpan={4} className="tape-empty mono">
-                  {marketClosed ? "No trades — market closed" : "No trades yet"}
+                  No trades yet
                 </td>
               </tr>
             )}
             {visible.map((t, i) => (
-              <tr key={`${t.id}-${t.timestamp_ns}`} className={i === 0 && isLive ? "tape-row-new" : ""}>
+              <tr key={`${t.id}-${t.timestamp_ns}`} className={i === 0 && marketOpen ? "tape-row-new" : ""}>
                 <td className="tape-time mono">
                   {new Date(t.timestamp_ns / 1e6).toLocaleTimeString()}
                 </td>

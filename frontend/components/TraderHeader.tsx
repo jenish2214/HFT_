@@ -1,4 +1,5 @@
 import type { TickInfo, MarketSession } from "@/lib/marketTypes";
+import { isMarketOpen } from "@/lib/marketTypes";
 import Link from "next/link";
 import SymbolSelector from "@/components/SymbolSelector";
 import { PRODUCT_NAME, PRODUCT_TAGLINE } from "@/lib/orionAlpha";
@@ -19,6 +20,8 @@ export default function TraderHeader({
   const spread = tick && tick.bid > 0 && tick.ask > 0 ? tick.ask - tick.bid : 0;
   const chg = tick?.change ?? 0;
   const up = chg >= 0;
+
+  const marketOpen = isMarketOpen(market);
 
   const metrics = [
     { label: "Last", value: tick?.price ? tick.price.toFixed(2) : "—", cls: "bb-val-last" },
@@ -57,16 +60,14 @@ export default function TraderHeader({
           onChange={onSymbolChange}
           loading={symbolLoading}
           dark
-          isLive={market?.is_live}
-          isRegularHours={market?.is_regular_hours}
+          marketOpen={marketOpen}
         />
-        <div className="trader-status">
-          <span className={`status-dot ${connected ? "live" : "offline"}`} />
-          <span className="bb-status-label">{connected ? "LIVE" : "OFFLINE"}</span>
-          {market?.status === "open" && (
-            <span className="dense-status-tag">OPEN</span>
-          )}
-        </div>
+        {marketOpen && connected && (
+          <div className="trader-status">
+            <span className="status-dot live" />
+            <span className="bb-status-label">LIVE</span>
+          </div>
+        )}
       </div>
       <div className="trader-metrics dense-metrics">
         {metrics.map((m) => (

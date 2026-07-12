@@ -19,6 +19,7 @@ import {
 import { fmtBarTime, sanitizeBars, toChartTime } from "@/lib/chartUtils";
 import ChartAnalysisPanel from "@/components/ChartAnalysisPanel";
 import ChartSymbolBar from "@/components/ChartSymbolBar";
+import DataNotFound from "@/components/DataNotFound";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
@@ -347,7 +348,7 @@ export default function FullScreenChartView({
           )}
           <span className={`fs-conn-dot${connected ? " fs-conn-live" : ""}`} title={connected ? "Connected" : "Disconnected"} />
           {market?.status === "open" && (
-            <span className="fs-market-tag mono chart-market-open">OPEN</span>
+            <span className="fs-market-tag mono chart-market-open">LIVE</span>
           )}
           {crosshair && <span className="fs-crosshair-time mono">{crosshair}</span>}
         </div>
@@ -371,17 +372,25 @@ export default function FullScreenChartView({
         <div className="fs-chart-stack">
           <div className="fs-chart-pane-wrap fs-chart-pane-main-wrap">
             <div ref={mainRef} className="fs-chart-pane fs-chart-pane-main" />
-            {(cleanBars.length < 2 || loading) && (
+            {loading && (
               <div className="fs-chart-loading">
-                <LoadingSpinner
-                  size="md"
-                  label={loading ? `Loading ${timeframe} chart…` : "Waiting for chart data…"}
-                />
+                <LoadingSpinner size="md" label={`Loading ${timeframe} chart…`} />
                 {tick && tick.price > 0 && (
                   <span className="mono bloomberg-chart-last">
                     {symbol} ${tick.price.toFixed(2)}
                   </span>
                 )}
+              </div>
+            )}
+            {!loading && cleanBars.length < 2 && (
+              <div className="fs-chart-loading fs-chart-not-found">
+                <DataNotFound
+                  symbol={symbol}
+                  title="Chart data not found"
+                  message="No chart bars available for this symbol and timeframe. Try again later or switch symbol."
+                  compact
+                  onRetry={() => onSymbolChange(symbol)}
+                />
               </div>
             )}
           </div>

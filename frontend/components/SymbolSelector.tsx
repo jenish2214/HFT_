@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import SymbolSearchInput from "@/components/SymbolSearchInput";
 
 const POPULAR = ["AAPL", "MSFT", "GOOGL", "TSLA", "AMZN", "NVDA", "META", "SPY"];
 
@@ -13,13 +14,12 @@ interface Props {
   onChange: (symbol: string) => void;
   loading?: boolean;
   dark?: boolean;
-  isLive?: boolean;
-  isRegularHours?: boolean;
+  marketOpen?: boolean;
 }
 
 export default function SymbolSelector({
   symbol, price, change, changePct, onChange, loading, dark,
-  isLive = false, isRegularHours = false,
+  marketOpen = false,
 }: Props) {
   const prevPrice = useRef<number | null>(null);
   const flashRef = useRef<HTMLSpanElement>(null);
@@ -40,7 +40,7 @@ export default function SymbolSelector({
 
   return (
     <div className={`symbol-select ${cls}`}>
-      {isRegularHours && <span className="symbol-live-dot" title="Regular session — live stream" />}
+      {marketOpen && <span className="symbol-live-dot" title="Regular session — live" />}
       <select
         value={POPULAR.includes(symbol) ? symbol : ""}
         onChange={(e) => e.target.value && onChange(e.target.value)}
@@ -50,20 +50,16 @@ export default function SymbolSelector({
         {!POPULAR.includes(symbol) && <option value="" disabled>{symbol}</option>}
         {POPULAR.map((s) => <option key={s} value={s}>{s}</option>)}
       </select>
-      <input
-        type="text"
-        defaultValue={symbol}
-        key={symbol}
-        placeholder="SYM"
-        maxLength={14}
-        disabled={loading}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            const val = (e.target as HTMLInputElement).value.toUpperCase().trim();
-            if (val) onChange(val);
-          }
-        }}
-        className="symbol-select-input mono"
+      <SymbolSearchInput
+        value={symbol}
+        onSelect={onChange}
+        loading={loading}
+        dark={dark}
+        compact
+        placeholder="Search…"
+        className="symbol-select-search"
+        inputClassName="symbol-select-input"
+        ariaLabel="Search symbol"
       />
       {price != null && price > 0 && (
         <>
@@ -73,7 +69,7 @@ export default function SymbolSelector({
               {ch >= 0 ? "+" : ""}{ch.toFixed(2)} ({changePct?.toFixed(2)}%)
             </span>
           )}
-          {isLive && isRegularHours && (
+          {marketOpen && (
             <span className="symbol-live-label">LIVE</span>
           )}
         </>

@@ -13,7 +13,6 @@ import MarketStatusBar from "@/components/MarketStatusBar";
 import MarketDataPanel from "@/components/MarketDataPanel";
 import CompanyReportPanel, { CompanyDirectory } from "@/components/CompanyReportPanel";
 import InvestmentBankerDesk from "@/components/InvestmentBankerDesk";
-import ProResearchDesk from "@/components/ProResearchDesk";
 import CppEnginePanel from "@/components/CppEnginePanel";
 import BloombergTerminalChart, { type ChartBar, type ChartTimeframe } from "@/components/BloombergTerminalChart";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -21,6 +20,7 @@ import type { QuickQuote } from "@/components/PanelLoading";
 import { useMarketStream } from "@/hooks/useMarketStream";
 import { getApiBase } from "@/lib/api";
 import type { Book, MarketSession, Stats, TickInfo, Trade } from "@/lib/marketTypes";
+import { isMarketOpen } from "@/lib/marketTypes";
 import {
   deskColumnForFunction,
   isFullDeskFunction,
@@ -208,8 +208,8 @@ export default function TerminalDashboard() {
 
   const handleMarketSelect = useCallback((sym: string) => {
     changeSymbol(sym);
-    setBbFunction("RES");
-    setMobileTab("research");
+    setBbFunction("FA");
+    setMobileTab("report");
   }, [changeSymbol]);
 
   useEffect(() => {
@@ -226,13 +226,14 @@ export default function TerminalDashboard() {
     change: tick?.change,
     change_pct: tick?.change_pct,
   };
+  const marketOpen = isMarketOpen(market);
 
   return (
     <div className="bb-terminal">
       {bootstrapping && (
         <div className="oa-boot-bar">
           <LoadingSpinner size="sm" />
-          <span>Connecting to market feed — loading live quotes…</span>
+          <span>{marketOpen ? "Connecting to market feed — loading live quotes…" : "Connecting to market feed…"}</span>
         </div>
       )}
       <TraderHeader
@@ -250,15 +251,13 @@ export default function TerminalDashboard() {
       <div className={`desk${fullDesk ? " desk-has-full" : ""}`}>
         {bbFunction === "IB" ? (
           <InvestmentBankerDesk active={symbol} onSelect={handleMarketSelect} />
-        ) : bbFunction === "RES" ? (
-          <ProResearchDesk symbol={symbol} onSelect={handleMarketSelect} quickQuote={quickQuote} />
         ) : (
         <>
         <div className={`desk-col desk-col-watch${activeDesk === "watch" ? " desk-col-active" : ""}${mobileTab === "market" ? " desk-mobile-active" : ""}`}>
           <BloombergWatchlist rows={watchlist} active={symbol} onSelect={changeSymbol} loading={bootstrapping && watchlist.length === 0} />
           <MemoOrderBook book={book} symbol={symbol} />
           <CppEnginePanel stats={stats} connected={connected} />
-          <MemoMarketData tick={tick} lastUpdateTs={lastUpdateTs} isLive={market?.is_regular_hours} />
+          <MemoMarketData tick={tick} lastUpdateTs={lastUpdateTs} marketOpen={marketOpen} />
         </div>
         <div className={`desk-col desk-col-center${activeDesk === "center" ? " desk-col-active" : ""}${mobileTab === "chart" ? " desk-mobile-active" : ""}`}>
           {bbFunction === "HELP" ? (
@@ -277,27 +276,27 @@ export default function TerminalDashboard() {
                 onTimeframeChange={changeTimeframe}
                 onSymbolChange={changeSymbol}
               />
-              <MemoTradeTape trades={trades} isLive={market?.is_regular_hours} marketClosed={!market?.is_live || market?.is_weekend} />
+              <MemoTradeTape trades={trades} marketOpen={marketOpen} />
             </>
           )}
         </div>
         <div className={`desk-col desk-col-report${activeDesk === "report" ? " desk-col-active" : ""}${mobileTab === "report" ? " desk-mobile-active" : ""}`}>
           <CompanyDirectory active={symbol} onSelect={changeSymbol} />
-          <MemoCompanyReport symbol={symbol} mode={reportMode} quickQuote={quickQuote} />
+          <MemoCompanyReport symbol={symbol} mode={reportMode} quickQuote={quickQuote} marketOpen={marketOpen} />
         </div>
         </>
         )}
       </div>
 
       <nav className="mobile-desk-nav" aria-label="Desk panels">
-        {(["chart", "market", "report", "ibank", "research"] as const).map((tab) => (
+        {(["chart", "market", "report", "ibank"] as const).map((tab) => (
           <button
             key={tab}
             type="button"
             className={`mobile-desk-tab${mobileTab === tab ? " mobile-desk-tab-active" : ""}`}
             onClick={() => {
               setMobileTab(tab);
-              const fn: Record<string, BbFunction> = { chart: "GP", market: "MON", report: "FA", ibank: "IB", research: "RES" };
+              const fn: Record<string, BbFunction> = { chart: "GP", market: "MON", report: "FA", ibank: "IB" };
               setBbFunction(fn[tab]);
             }}
           >
@@ -315,15 +314,15 @@ const MemoOrderBook = memo(OrderBook, (a, b) => a.symbol === b.symbol && sameBoo
 const MemoTradeTape = memo(TradeTape);
 const MemoCompanyReport = memo(
   CompanyReportPanel,
-  (a, b) => a.symbol === b.symbol && a.mode === b.mode && a.quickQuote?.price === b.quickQuote?.price,
+  (a, b) => a.symbol === b.symbol && a.mode === b.mode && a.marketOpen === b.marketOpen && a.quickQuote?.price === b.quickQuote?.price,
 );
 const MemoMarketData = memo(
-  function MarketDataLive({ tick, lastUpdateTs, isLive }: { tick: TickInfo | null; lastUpdateTs: number; isLive?: boolean }) {
-    return <MarketDataPanel tick={tick} compact isLive={isLive} lastUpdateTs={lastUpdateTs} />;
+  function MarketDataLive({ tick, lastUpdateTs, marketOpen }: { tick: TickInfo | null; lastUpdateTs: number; marketOpen?: boolean }) {
+    return <MarketDataPanel tick={tick} compact marketOpen={marketOpen} lastUpdateTs={lastUpdateTs} />;
   },
   (a, b) => {
     if (a.lastUpdateTs !== b.lastUpdateTs) return false;
-    if (a.isLive !== b.isLive) return false;
+    if (a.marketOpen !== b.marketOpen) return false;
     if (!a.tick && !b.tick) return true;
     if (!a.tick || !b.tick) return false;
     return sameTick(a.tick, b.tick);

@@ -63,6 +63,11 @@ export interface MarketSession {
   countdown: string;
 }
 
+/** True only during regular US equity session (status === "open"). */
+export function isMarketOpen(market: MarketSession | null | undefined): boolean {
+  return market?.status === "open";
+}
+
 export interface TickInfo {
   symbol: string;
   price: number;

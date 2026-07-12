@@ -1,6 +1,7 @@
 "use client";
 
 import { ORION_UNIVERSE } from "@/lib/orionAlpha";
+import SymbolSearchInput from "@/components/SymbolSearchInput";
 
 const QUICK = [
   ...ORION_UNIVERSE.equities.slice(0, 4),
@@ -18,26 +19,19 @@ interface Props {
 
 export default function ChartSymbolBar({ symbol, onChange, loading, compact }: Props) {
   return (
-    <form
-      className={`chart-symbol-bar${compact ? " chart-symbol-bar-compact" : ""}`}
-      onSubmit={(e) => {
-        e.preventDefault();
-        const fd = new FormData(e.currentTarget);
-        const sym = String(fd.get("sym") || "").trim().toUpperCase();
-        if (sym) onChange(sym);
-      }}
-    >
-      <input
-        name="sym"
-        className="chart-symbol-input mono"
-        defaultValue={symbol}
-        key={symbol}
-        placeholder="AAPL · BTC-USD · GC=F"
-        maxLength={14}
-        disabled={loading}
-        aria-label="Chart symbol"
+    <div className={`chart-symbol-bar${compact ? " chart-symbol-bar-compact" : ""}`}>
+      <SymbolSearchInput
+        value={symbol}
+        onSelect={onChange}
+        loading={loading}
+        dark
+        compact={compact}
+        showGoButton
+        placeholder="AAPL · EURUSD · BTC-USD"
+        className="chart-symbol-search"
+        inputClassName="chart-symbol-input"
+        ariaLabel="Chart symbol search"
       />
-      <button type="submit" className="chart-symbol-go" disabled={loading}>GO</button>
       {!compact && (
         <div className="chart-symbol-quick">
           {QUICK.map((s) => (
@@ -53,6 +47,6 @@ export default function ChartSymbolBar({ symbol, onChange, loading, compact }: P
           ))}
         </div>
       )}
-    </form>
+    </div>
   );
 }

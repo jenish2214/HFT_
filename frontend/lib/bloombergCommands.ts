@@ -1,13 +1,13 @@
-export type BbFunction = "GP" | "DES" | "FA" | "CN" | "HP" | "WEI" | "MON" | "IB" | "RES" | "HELP";
+export type BbFunction = "GP" | "DES" | "FA" | "CN" | "HP" | "WEI" | "MON" | "IB" | "HELP";
 
-export type MobileDeskTab = "chart" | "market" | "report" | "ibank" | "research";
+export type MobileDeskTab = "chart" | "market" | "report" | "ibank";
 
 export interface BbCommandResult {
   fn?: BbFunction;
   symbol?: string;
 }
 
-const FN_KEYS = new Set<BbFunction>(["GP", "DES", "FA", "CN", "HP", "WEI", "MON", "IB", "RES", "HELP"]);
+const FN_KEYS = new Set<BbFunction>(["GP", "DES", "FA", "CN", "HP", "WEI", "MON", "IB", "HELP"]);
 
 function parseSymbolArg(parts: string[]): string | undefined {
   if (parts.length < 2) return undefined;
@@ -35,7 +35,7 @@ export function parseBloombergCommand(input: string): BbCommandResult {
 }
 
 export function isFullDeskFunction(fn: BbFunction): boolean {
-  return fn === "IB" || fn === "RES";
+  return fn === "IB";
 }
 
 export const BB_HELP_LINES = [
@@ -46,7 +46,6 @@ export const BB_HELP_LINES = [
   "DES AAPL      Company description",
   "MON           Orion Alpha monitor (all assets)",
   "IB            Investment banker — all markets",
-  "RES AAPL      Pro research desk",
   "HP AAPL       Historical prices (1Y chart)",
   "WEI           World indices (SPY)",
   "BTC-USD       Load crypto symbol",
@@ -59,7 +58,6 @@ export const BB_HELP_LINES = [
 
 export function mobileTabForFunction(fn: BbFunction): MobileDeskTab {
   if (fn === "IB") return "ibank";
-  if (fn === "RES") return "research";
   if (fn === "MON") return "market";
   if (fn === "GP" || fn === "HP") return "chart";
   if (fn === "HELP") return "chart";
@@ -67,7 +65,7 @@ export function mobileTabForFunction(fn: BbFunction): MobileDeskTab {
 }
 
 export function deskColumnForFunction(fn: BbFunction): "watch" | "center" | "report" | "full" {
-  if (fn === "IB" || fn === "RES") return "full";
+  if (fn === "IB") return "full";
   if (fn === "MON") return "watch";
   if (fn === "GP" || fn === "HP" || fn === "HELP") return "center";
   return "report";

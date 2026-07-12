@@ -32,7 +32,7 @@ export default function BloombergCommandBar({ symbol, onSymbolChange, onFunction
       <span className="bb-cmd-prompt mono">&gt;</span>
       <input
         className="bb-cmd-input mono"
-        placeholder={`${symbol} <GO> · ${PRODUCT_NAME} · FA · GP · IB · RES · HELP`}
+        placeholder={`${symbol} <GO> · ${PRODUCT_NAME} · FA · GP · IB · HELP`}
         value={cmd}
         onChange={(e) => setCmd(e.target.value)}
         onKeyDown={(e) => {

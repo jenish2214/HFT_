@@ -6,6 +6,7 @@ import type { BankerDeskData, AssetClass } from "@/lib/marketDeskTypes";
 import { ASSET_CLASS_ORDER } from "@/lib/marketDeskTypes";
 import { PRODUCT_NAME } from "@/lib/orionAlpha";
 import PanelLoading from "@/components/PanelLoading";
+import DataNotFound from "@/components/DataNotFound";
 import { MarketAssetTable } from "@/components/MarketAssetTable";
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 export default function InvestmentBankerDesk({ active, onSelect }: Props) {
   const [data, setData] = useState<BankerDeskData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -32,7 +34,7 @@ export default function InvestmentBankerDesk({ active, onSelect }: Props) {
         .catch(() => {});
     }, 60000);
     return () => clearInterval(id);
-  }, []);
+  }, [retryKey]);
 
   if (loading && !data) {
     return (
@@ -50,7 +52,11 @@ export default function InvestmentBankerDesk({ active, onSelect }: Props) {
   if (!data) {
     return (
       <div className="desk-full ib-desk">
-        <div className="desk-full-loading mono">Market data unavailable</div>
+        <DataNotFound
+          title="Market data not found"
+          message="Global markets data is temporarily unavailable. Please try again later."
+          onRetry={() => setRetryKey((k) => k + 1)}
+        />
       </div>
     );
   }

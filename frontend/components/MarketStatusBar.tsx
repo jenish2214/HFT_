@@ -19,7 +19,7 @@ export default function MarketStatusBar({ market, lastUpdateTs = 0 }: Props) {
   return (
     <div className="market-bar market-bar-open">
       <span className="market-bar-pill market-bar-live market-bar-live-pulse">
-        OPEN · LIVE
+        LIVE
       </span>
       <span className="market-bar-label">{market.label}</span>
       {market.session_detail && (

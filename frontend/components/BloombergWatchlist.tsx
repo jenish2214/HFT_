@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import SymbolSearchInput from "@/components/SymbolSearchInput";
 import {
   ASSET_CLASS_FILTERS,
   ASSET_CLASS_SHORT,
@@ -65,6 +66,16 @@ export default function BloombergWatchlist({ rows, active, onSelect, loading = f
             {f.id !== "all" && counts[f.id] ? ` ${counts[f.id]}` : f.id === "all" ? ` ${counts.all}` : ""}
           </button>
         ))}
+      </div>
+      <div className="wl-search-wrap">
+        <SymbolSearchInput
+          onSelect={onSelect}
+          dark
+          compact
+          placeholder="Search stocks, forex, crypto…"
+          className="wl-symbol-search"
+          ariaLabel="Search watchlist universe"
+        />
       </div>
       <div className="panel-body wl-body">
         <table className="wl-table">

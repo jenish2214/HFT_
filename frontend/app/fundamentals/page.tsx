@@ -6,6 +6,7 @@ import { getApiBase } from "@/lib/api";
 import type { CompanyReport } from "@/components/CompanyReportPanel";
 import CompanyFundamentalsTabs from "@/components/CompanyFundamentalsTabs";
 import PanelLoading from "@/components/PanelLoading";
+import DataNotFound from "@/components/DataNotFound";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
@@ -15,6 +16,7 @@ function FundamentalsContent() {
   const [symbol, setSymbol] = useState(initialSymbol);
   const [report, setReport] = useState<CompanyReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -23,7 +25,7 @@ function FundamentalsContent() {
       .then((d) => setReport(d as CompanyReport))
       .catch(() => setReport(null))
       .finally(() => setLoading(false));
-  }, [symbol]);
+  }, [symbol, retryKey]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -60,11 +62,18 @@ function FundamentalsContent() {
         />
       )}
 
-      {!loading && !report && (
-        <div className="desk-full-loading mono">Fundamentals unavailable for {symbol}</div>
+      {!loading && (!report || report.data_found === false) && (
+        <DataNotFound
+          symbol={symbol}
+          title="Fundamentals not found"
+          message={report?.message ?? undefined}
+          sourcesTried={report?.sources_tried}
+          source={report?.data_source}
+          onRetry={() => setRetryKey((k) => k + 1)}
+        />
       )}
 
-      {report && (
+      {report && report.data_found !== false && (
         <div className="fa-page-body">
           <div className="fa-page-intro">
             <div>

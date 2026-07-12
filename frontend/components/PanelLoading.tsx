@@ -16,6 +16,7 @@ interface Props {
   quote?: QuickQuote | null;
   variant?: "panel" | "full" | "inline";
   skeleton?: "report" | "grid" | "list" | "chart" | "desk";
+  marketOpen?: boolean;
 }
 
 function SkeletonReport() {
@@ -66,7 +67,7 @@ function SkeletonDesk() {
   );
 }
 
-function FastInfo({ quote }: { quote: QuickQuote }) {
+function FastInfo({ quote, marketOpen }: { quote: QuickQuote; marketOpen: boolean }) {
   const up = (quote.change_pct ?? quote.change ?? 0) >= 0;
   return (
     <div className="oa-fast-info mono">
@@ -82,7 +83,7 @@ function FastInfo({ quote }: { quote: QuickQuote }) {
           {up ? "+" : ""}{quote.change_pct.toFixed(2)}%
         </span>
       )}
-      <span className="oa-fast-tag">LIVE QUOTE</span>
+      {marketOpen && <span className="oa-fast-tag">LIVE</span>}
     </div>
   );
 }
@@ -93,6 +94,7 @@ export default function PanelLoading({
   quote,
   variant = "panel",
   skeleton = "report",
+  marketOpen = false,
 }: Props) {
   const skeletonEl =
     skeleton === "grid" ? <SkeletonGrid />
@@ -113,7 +115,7 @@ export default function PanelLoading({
   if (variant === "full") {
     return (
       <div className="desk-full-loading oa-loading-full">
-        {quote && <FastInfo quote={quote} />}
+        {quote && <FastInfo quote={quote} marketOpen={marketOpen} />}
         <LoadingSpinner size="lg" label={message} />
         {title && <div className="oa-loading-title mono">{title}</div>}
         {skeletonEl}
@@ -123,7 +125,7 @@ export default function PanelLoading({
 
   return (
     <div className="oa-loading-panel">
-      {quote && <FastInfo quote={quote} />}
+      {quote && <FastInfo quote={quote} marketOpen={marketOpen} />}
       <div className="oa-loading-head">
         <LoadingSpinner size="sm" />
         <span className="mono oa-loading-msg">{message}</span>
