@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import math
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 import numpy as np
@@ -309,6 +310,21 @@ def _company_snapshot(symbol: str) -> dict[str, Any]:
     }
 
 
+def _company_profiles_parallel(tickers: list[str]) -> dict[str, dict[str, Any]]:
+    unique = list(dict.fromkeys(tickers))
+    profiles: dict[str, dict[str, Any]] = {}
+    workers = min(6, max(1, len(unique)))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(_company_snapshot, sym): sym for sym in unique}
+        for fut in as_completed(futures):
+            sym = futures[fut]
+            try:
+                profiles[sym] = fut.result()
+            except Exception:
+                profiles[sym] = {"symbol": sym, "data_found": False}
+    return profiles
+
+
 def run_quant_research(
     primary: str = "AAPL",
     tickers: list[str] | None = None,
@@ -504,7 +520,7 @@ def run_quant_research(
         },
         "data_found": True,
         "data_source": "quant-research",
-        "sources_tried": ["yfinance", "python-quant-engine"],
+        "sources_tried": ["yfinance"],
         "factor_scores": factor_rows,
         "capm": capm_rows,
         "risk_metrics": risk_rows,
@@ -512,8 +528,8 @@ def run_quant_research(
         "factor_ic": ic_rows,
         "pattern_signals": patterns,
         "correlation": corr_matrix,
-        "company_profiles": {t: _company_snapshot(t) for t in available},
-        "primary_profile": _company_snapshot(sym),
+        "company_profiles": (profiles := _company_profiles_parallel(available)),
+        "primary_profile": profiles.get(sym) or _company_snapshot(sym),
         "charts": {
             "price_series": price_chart,
             "cumulative_returns": returns_chart,
@@ -531,7 +547,7 @@ def run_quant_research(
             "recommendation": recommendation,
             "universe_vol_pct": _safe_float(np.mean([r["ann_vol_pct"] for r in risk_rows if r["ann_vol_pct"]]), 2),
         },
-        "methodology": "QuantResearch.ipynb — factor engine, CAPM, risk, Monte Carlo GBM",
+        "methodology": "Factor engine, CAPM, risk metrics, Monte Carlo GBM",
         "updated_ts": now,
     }
 

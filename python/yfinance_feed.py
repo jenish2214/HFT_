@@ -661,6 +661,17 @@ def fetch_company_report(symbol: str) -> dict:
     }
 
     try:
+        from yahooquery_feed import fetch_yahooquery_report, merge_report
+
+        yq_report = fetch_yahooquery_report(sym)
+        if yq_report:
+            report = merge_report(report, yq_report)
+    except ImportError:
+        pass
+    except Exception as exc:
+        print(f"[yahooquery] enrich failed ({sym}): {exc}")
+
+    try:
         t = yf.Ticker(sym)
         info = t.info or {}
         report.update({
@@ -728,7 +739,8 @@ def fetch_company_report(symbol: str) -> dict:
             report["message"] = DATA_NOT_FOUND_MSG
     else:
         report["data_found"] = True
-        report["data_source"] = "yfinance"
+        src = report.get("data_source")
+        report["data_source"] = src if src == "yahooquery" else "yfinance"
         report["partial"] = False
 
     _report_cache[sym] = report

@@ -11,6 +11,7 @@ import PanelLoading, { type QuickQuote } from "@/components/PanelLoading";
 import DataNotFound from "@/components/DataNotFound";
 import { MarketAssetTable } from "@/components/MarketAssetTable";
 import { chartPageUrl } from "@/lib/chartIndicators";
+import ChartFullscreenLink from "@/components/ChartFullscreenLink";
 
 interface Props {
   symbol: string;
@@ -85,9 +86,7 @@ export default function ProResearchDesk({ symbol, onSelect, quickQuote, marketOp
           <span className={quote.change_pct >= 0 ? "pnl-pos" : "pnl-neg"}>
             {quote.change_pct >= 0 ? "+" : ""}{quote.change_pct.toFixed(2)}%
           </span>
-          <a href={chartPageUrl(symbol, "1Y")} target="_blank" rel="noopener noreferrer" className="chart-fullscreen-btn">
-            CHART ↗
-          </a>
+          <ChartFullscreenLink href={chartPageUrl(symbol, "1Y")} title="Open full-screen chart" external />
         </div>
       </div>
 

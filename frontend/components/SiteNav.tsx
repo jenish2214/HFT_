@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { motion, useScroll, useSpring } from "framer-motion";
 import { usePathname } from "next/navigation";
-import SiteThemeToggle from "@/components/SiteThemeToggle";
+import { EASE_OUT } from "@/lib/siteMotion";
 import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
 const NAV_ITEMS = [
@@ -16,6 +17,8 @@ const NAV_ITEMS = [
 
 export default function SiteNav() {
   const path = usePathname();
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 28, restDelta: 0.001 });
 
   const isActive = (href: string) => {
     if (href === "/") return path === "/";
@@ -23,9 +26,15 @@ export default function SiteNav() {
   };
 
   return (
-    <header className="site-nav-wrap">
+    <motion.header
+      className="site-nav-wrap"
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, ease: EASE_OUT }}
+    >
+      <motion.div className="site-scroll-progress" style={{ scaleX }} />
       <div className="site-nav-bar">
-        <Link href="/" className="site-nav-brand">
+        <Link href="/" className="site-nav-brand" prefetch>
           <span className="site-nav-logo">OA</span>
           <span className="site-nav-name">{PRODUCT_NAME}</span>
         </Link>
@@ -35,6 +44,7 @@ export default function SiteNav() {
             <Link
               key={href}
               href={href}
+              prefetch
               className={`site-nav-link${isActive(href) ? " site-nav-active" : ""}`}
             >
               {label}
@@ -43,12 +53,13 @@ export default function SiteNav() {
         </nav>
 
         <div className="site-nav-actions">
-          <SiteThemeToggle />
-          <Link href="/terminal" className="site-nav-cta">
-            Open Terminal
-          </Link>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+            <Link href="/terminal" className="site-nav-cta" prefetch>
+              Open Terminal
+            </Link>
+          </motion.div>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

@@ -1,15 +1,16 @@
 """
-Unified market data — yfinance primary, Google Finance fallback.
+Unified market data — ccxt (crypto), yfinance primary, Google Finance fallback.
 """
 
 from __future__ import annotations
 
 import yfinance as yf
 
+from crypto_ccxt_feed import fetch_crypto_quote_ccxt, is_crypto_symbol
 from google_finance_feed import fetch_google_quote
 
 DATA_NOT_FOUND_MSG = "Data not found. Please try again later."
-SOURCES = ("yfinance", "google-finance")
+SOURCES = ("ccxt", "yfinance", "google-finance")
 
 
 def _empty_quote(symbol: str, sources_tried: list[str] | None = None) -> dict:
@@ -80,21 +81,33 @@ def _quote_from_yfinance(symbol: str) -> dict | None:
 
 
 def fetch_quote_with_fallback(symbol: str) -> dict:
-    """Try yfinance, then Google Finance. Always returns a structured dict."""
+    """Try ccxt (crypto), yfinance, then Google Finance. Always returns a structured dict."""
     sym = symbol.upper().strip()
+    sources_tried: list[str] = []
+
+    if is_crypto_symbol(sym):
+        sources_tried.append("ccxt")
+        cq = fetch_crypto_quote_ccxt(sym)
+        if cq and cq.get("price", 0) > 0:
+            cq["sources_tried"] = sources_tried
+            return cq
+
+    sources_tried.append("yfinance")
     yq = _quote_from_yfinance(sym)
     if yq and yq.get("price", 0) > 0:
+        yq["sources_tried"] = sources_tried
         return yq
 
+    sources_tried.append("google-finance")
     gq = fetch_google_quote(sym)
     if gq and gq.get("price", 0) > 0:
         return {
             **gq,
-            "sources_tried": ["yfinance", "google-finance"],
+            "sources_tried": sources_tried,
             "message": None,
         }
 
-    return _empty_quote(sym)
+    return _empty_quote(sym, sources_tried=sources_tried)
 
 
 def merge_quote_into_row(row: dict, quote: dict) -> dict:

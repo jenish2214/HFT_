@@ -1,6 +1,5 @@
-import SiteNav from "@/components/SiteNav";
-import QuantResearchDashboard from "@/components/QuantResearchDashboard";
-import { PRODUCT_NAME, PRODUCT_MOTTO } from "@/lib/orionAlpha";
+import ResearchPageContent from "@/components/ResearchPageContent";
+import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
 export const metadata = {
   title: `Research — ${PRODUCT_NAME}`,
@@ -8,11 +7,5 @@ export const metadata = {
 };
 
 export default function ResearchPage() {
-  return (
-    <div className="site-page">
-      <SiteNav />
-      <QuantResearchDashboard />
-      <footer className="site-footer">{PRODUCT_NAME} · {PRODUCT_MOTTO} · Quant Research</footer>
-    </div>
-  );
+  return <ResearchPageContent />;
 }

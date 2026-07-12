@@ -1,8 +1,26 @@
 fastapi>=0.109.0
 uvicorn[standard]>=0.27.0
 websockets>=12.0
+
+# Core numerics
 numpy>=1.26.0
 pandas>=2.0.0
-yfinance>=0.2.36
 scipy>=1.11.0
 statsmodels>=0.14.0
+
+# Market data
+yfinance>=0.2.36
+yahooquery>=2.3.7
+ccxt>=4.2.0
+
+# Technical analysis & quant metrics
+ta>=0.11.0
+scikit-learn>=1.4.0
+matplotlib>=3.8.0
+plotly>=5.18.0
+quantstats>=0.0.62
+arch>=6.3.0
+empyrical-reloaded>=0.5.7
+
+# Optional backtesting stack (heavy; install separately if needed)
+# pip install vectorbt backtrader zipline-reloaded pyfolio-reloaded

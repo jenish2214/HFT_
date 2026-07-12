@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Trade } from "@/lib/marketTypes";
 
 interface Props {
@@ -8,30 +8,11 @@ interface Props {
   marketOpen?: boolean;
 }
 
-const STORAGE_KEY = "oa-tape-expanded";
-
 export default function TradeTape({ trades, marketOpen = false }: Props) {
-  const [expanded, setExpanded] = useState(true);
-
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem(STORAGE_KEY);
-      if (v === "0") setExpanded(false);
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  const [expanded, setExpanded] = useState(false);
 
   const toggle = () => {
-    setExpanded((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(STORAGE_KEY, next ? "1" : "0");
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
+    setExpanded((prev) => !prev);
   };
 
   const visible = expanded ? trades.slice(0, 12) : trades.slice(0, 3);

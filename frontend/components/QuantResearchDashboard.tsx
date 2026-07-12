@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getApiBase } from "@/lib/api";
 import DataNotFound from "@/components/DataNotFound";
 import SymbolSearchInput from "@/components/SymbolSearchInput";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import { QuantPageSkeleton } from "@/components/skeletons/ContentSkeletons";
 import QuantResearchCharts from "@/components/QuantResearchCharts";
+import QuantRiskTactics from "@/components/QuantRiskTactics";
+import { ResearchDeskBar } from "@/components/QuantResearchDesk";
 import QuantSymbolCards from "@/components/QuantSymbolCards";
 import QuantCompanyProfile from "@/components/QuantCompanyProfile";
 import type { QuantResearchData } from "@/lib/quantResearchTypes";
 import { QUANT_DEFAULT_TICKERS } from "@/lib/quantResearchTypes";
+import { getQuantCache, setQuantCache } from "@/lib/quantCache";
+import { loadQuantResearch } from "@/lib/fetchQuantResearch";
+import QuantResearchFallback from "@/components/QuantResearchFallback";
+import type { ResearchProfile } from "@/lib/marketDeskTypes";
 import { PRODUCT_NAME, PRODUCT_MOTTO } from "@/lib/orionAlpha";
 
 function alphaBar(value: number | null, max = 1.5) {
@@ -29,44 +34,81 @@ function hasQuantData(d: QuantResearchData | null): boolean {
 }
 
 export default function QuantResearchDashboard() {
-  const [primary, setPrimary] = useState("AAPL");
-  const [draftSymbol, setDraftSymbol] = useState("AAPL");
+  const [hasSearched, setHasSearched] = useState(false);
+  const [primary, setPrimary] = useState("");
+  const [draftSymbol, setDraftSymbol] = useState("");
   const [data, setData] = useState<QuantResearchData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [fetching, setFetching] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
+  const [liteProfile, setLiteProfile] = useState<ResearchProfile | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const factorsRef = useRef<HTMLDivElement>(null);
   const [factorsVisible, setFactorsVisible] = useState(false);
 
   const runResearch = (sym: string) => {
-    setDraftSymbol(sym);
-    setPrimary(sym);
+    const next = sym.trim().toUpperCase();
+    if (!next) return;
+    setDraftSymbol(next);
+    setHasSearched(true);
+    setLiteProfile(null);
+    setErrorMsg(null);
+    setFetching(true);
+
+    if (next === primary) {
+      setRetryKey((k) => k + 1);
+      return;
+    }
+
+    const cached = getQuantCache(next);
+    setData(cached && hasQuantData(cached) ? cached : null);
+    setPrimary(next);
   };
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setData(null);
+    if (!primary) return;
 
-    const tickers = QUANT_DEFAULT_TICKERS.join(",");
-    fetch(`${getApiBase()}/research/quant?symbol=${encodeURIComponent(primary)}&tickers=${tickers}`, { cache: "no-store" })
-      .then(async (r) => {
-        const d = await r.json() as QuantResearchData & { status?: string };
+    let cancelled = false;
+    const cached = getQuantCache(primary);
+    const hasCache = cached && hasQuantData(cached);
+
+    if (hasCache) {
+      setData(cached);
+      setLiteProfile(null);
+      setErrorMsg(null);
+    } else {
+      setData(null);
+      setLiteProfile(null);
+      setErrorMsg(null);
+    }
+    setFetching(true);
+
+    loadQuantResearch(primary, QUANT_DEFAULT_TICKERS)
+      .then((result) => {
         if (cancelled) return;
-        if (!r.ok || d.status === "error" || d.data_found === false) {
-          setData({
-            data_found: false,
-            message: d.message ?? "Quant research unavailable. Please try again later.",
-            sources_tried: d.sources_tried ?? ["yfinance", "python-quant-engine"],
-          } as QuantResearchData);
-        } else {
-          setData(d);
+        if (result.mode === "full") {
+          setData(result.data);
+          setLiteProfile(null);
+          setErrorMsg(null);
+          setQuantCache(primary, result.data);
+        } else if (result.mode === "lite" && !hasCache) {
+          setData(null);
+          setLiteProfile(result.profile);
+          setErrorMsg(null);
+        } else if (result.mode === "error" && !hasCache) {
+          setData(null);
+          setLiteProfile(null);
+          setErrorMsg(result.message);
         }
       })
       .catch(() => {
-        if (!cancelled) setData(null);
+        if (!cancelled && !hasCache) {
+          setData(null);
+          setLiteProfile(null);
+          setErrorMsg("Quant research unavailable. Please try again later.");
+        }
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setFetching(false);
       });
 
     return () => { cancelled = true; };
@@ -80,16 +122,19 @@ export default function QuantResearchDashboard() {
     return () => obs.disconnect();
   }, [data]);
 
-  const quantData = hasQuantData(data) ? data : null;
+  const quantData =
+    hasQuantData(data) && data!.primary.toUpperCase() === primary.toUpperCase()
+      ? data
+      : null;
 
   return (
-    <div className="qr-page">
+    <div className="qr-page qr-page-compact">
       <section className="qr-hero site-section-wide">
         <div className="qr-hero-inner">
           <p className="site-hero-badge">{PRODUCT_MOTTO}</p>
-          <h1 className="qr-hero-title">Quant Research</h1>
+          <h1 className="qr-hero-title">Quant Research Desk</h1>
           <p className="qr-hero-lead">
-            Factor engine, CAPM alpha/beta, risk metrics, Monte Carlo simulation, and pattern probability — clean quant research for any symbol.
+            Enter a symbol and press <strong>GO</strong> to run factor research, risk metrics, and pattern analysis.
           </p>
           <div className="qr-hero-search-wrap">
             <SymbolSearchInput
@@ -98,13 +143,18 @@ export default function QuantResearchDashboard() {
               onSelect={runResearch}
               submitOnGoOnly
               showGoButton
-              loading={loading}
+              loading={fetching}
               placeholder="Symbol e.g. AAPL"
               className="qr-symbol-search"
               ariaLabel="Primary research symbol"
             />
-            <p className="qr-hero-search-hint">Select or type a symbol, then press <strong>GO</strong> to run research.</p>
+            <p className="qr-hero-search-hint">Type a ticker, then press <strong>GO</strong> to load your research desk.</p>
           </div>
+          {fetching && hasSearched && !quantData && (
+            <div className="qr-hero-fetch" aria-hidden>
+              <div className="oa-progress-bar oa-progress-bar-indeterminate qr-hero-progress" />
+            </div>
+          )}
           {quantData && (
             <p className="qr-meta mono">
               {quantData.trading_days} days · {quantData.date_range.start} → {quantData.date_range.end} · vs {quantData.benchmark}
@@ -113,46 +163,59 @@ export default function QuantResearchDashboard() {
         </div>
       </section>
 
-      {loading && (
-        <div className="qr-loading">
-          <LoadingSpinner size="lg" label="Running quant research pipeline…" />
+      {!hasSearched && (
+        <div className="qr-empty-state">
+          <div className="qr-empty-icon mono" aria-hidden>GO</div>
+          <h2 className="qr-empty-title">No symbol loaded</h2>
+          <p className="qr-empty-msg">
+            Research starts empty. Search a symbol above and press GO to view quant data for that ticker.
+          </p>
+          <div className="qr-empty-suggestions">
+            <span className="qr-empty-label mono">Try</span>
+            {["AAPL", "MSFT", "NVDA", "SPY", "BTC-USD"].map((sym) => (
+              <button
+                key={sym}
+                type="button"
+                className="qr-empty-chip mono"
+                onClick={() => setDraftSymbol(sym)}
+              >
+                {sym}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
-      {!loading && !quantData && (
-        <DataNotFound
+      {hasSearched && fetching && quantData && (
+        <div className="oa-progress-bar oa-progress-bar-indeterminate qr-top-progress" role="status" aria-live="polite" aria-label="Updating research data" />
+      )}
+
+      {hasSearched && fetching && !quantData && !liteProfile && (
+        <QuantPageSkeleton />
+      )}
+
+      {hasSearched && !fetching && !quantData && liteProfile && (
+        <QuantResearchFallback
           symbol={primary}
-          title="Research data not found"
-          message={data?.message ?? "Quant research unavailable. Please try again later."}
-          sourcesTried={data?.sources_tried ?? ["yfinance", "quant-research"]}
+          profile={liteProfile}
           onRetry={() => setRetryKey((k) => k + 1)}
         />
       )}
 
-      {!loading && quantData && (
-        <>
-          <section className="site-section site-section-wide site-section-muted">
-            <h2 className="site-section-title">Research summary</h2>
-            <p className="site-section-lead">{quantData.summary.recommendation}</p>
-            <div className="qr-summary-grid">
-              <article className="qr-summary-card">
-                <span className="qr-summary-label">Top factor pick</span>
-                <strong className="mono">{quantData.summary.top_factor_pick}</strong>
-              </article>
-              <article className="qr-summary-card">
-                <span className="qr-summary-label">Best CAPM alpha</span>
-                <strong className="mono">{quantData.summary.best_capm_alpha}</strong>
-              </article>
-              <article className="qr-summary-card">
-                <span className="qr-summary-label">Best Sharpe</span>
-                <strong className="mono">{quantData.summary.best_sharpe}</strong>
-              </article>
-              <article className="qr-summary-card">
-                <span className="qr-summary-label">Universe vol</span>
-                <strong className="mono">{quantData.summary.universe_vol_pct ?? "—"}%</strong>
-              </article>
-            </div>
-          </section>
+      {hasSearched && !fetching && !quantData && !liteProfile && (errorMsg || data?.data_found === false) && (
+        <DataNotFound
+          symbol={primary}
+          title="Research data not found"
+          message={errorMsg ?? data?.message ?? "Quant research unavailable. Please try again later."}
+          onRetry={() => setRetryKey((k) => k + 1)}
+          compact
+          hideSources
+        />
+      )}
+
+      {quantData && (
+        <div className={`qr-content-wrap${fetching ? " qr-content-refreshing" : ""}`}>
+          <ResearchDeskBar data={quantData} primary={primary} />
 
           <QuantCompanyProfile data={quantData} primary={primary} />
 
@@ -160,10 +223,12 @@ export default function QuantResearchDashboard() {
 
           <QuantResearchCharts data={quantData} primary={primary} />
 
+          <QuantRiskTactics data={quantData} primary={primary} />
+
           <section className="site-section site-section-wide" ref={factorsRef}>
             <h2 className="site-section-title">Factor model & composite alpha</h2>
             <p className="site-section-lead">
-              Momentum, reversal, low-vol, and trend factors — cross-sectional z-scores from QuantResearch.ipynb.
+              Momentum, reversal, low-vol, and trend factors — cross-sectional z-scores.
             </p>
             <div className="qr-table-wrap">
               <table className="qr-table">
@@ -265,35 +330,10 @@ export default function QuantResearchDashboard() {
             </div>
           </section>
 
-          <section className="site-section site-section-wide site-section-muted">
-            <h2 className="site-section-title">Monte Carlo forecast (252d GBM)</h2>
-            <div className="qr-table-wrap">
-              <table className="qr-table">
-                <thead>
-                  <tr><th>Symbol</th><th>Current</th><th>5th %ile</th><th>Median</th><th>95th %ile</th></tr>
-                </thead>
-                <tbody>
-                  {quantData.monte_carlo.map((m) => (
-                    <tr key={m.symbol}>
-                      <td className="mono">{m.symbol}</td>
-                      <td className="mono">${m.current?.toFixed(2) ?? "—"}</td>
-                      <td className="mono">${m.p05?.toFixed(2) ?? "—"}</td>
-                      <td className="mono">${m.p50?.toFixed(2) ?? "—"}</td>
-                      <td className="mono">${m.p95?.toFixed(2) ?? "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="qr-footnote mono">
-              Equal-weight portfolio: {quantData.portfolio.equal_weight.return_pct}% return · {quantData.portfolio.equal_weight.vol_pct}% vol · Sharpe {quantData.portfolio.equal_weight.sharpe}
-            </p>
-          </section>
-
           <section className="site-section site-section-wide qr-method">
-            <p className="qr-method-note">Quant research · {PRODUCT_NAME}</p>
+            <p className="qr-method-note">{PRODUCT_NAME} · Quant research</p>
           </section>
-        </>
+        </div>
       )}
     </div>
   );

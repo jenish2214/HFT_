@@ -8,6 +8,7 @@ interface Props {
   source?: string;
   onRetry?: () => void;
   compact?: boolean;
+  hideSources?: boolean;
   className?: string;
 }
 
@@ -28,6 +29,7 @@ export default function DataNotFound({
   source,
   onRetry,
   compact = false,
+  hideSources = false,
   className = "",
 }: Props) {
   return (
@@ -36,10 +38,12 @@ export default function DataNotFound({
       <h3 className="oa-data-not-found-title mono">{title}</h3>
       {symbol && <p className="oa-data-not-found-symbol mono">{symbol}</p>}
       <p className="oa-data-not-found-msg">{message}</p>
-      <p className="oa-data-not-found-sources mono">
-        Sources checked: {sourcesTried.map(formatSource).join(" · ")}
-        {source && source !== "none" ? ` · Using ${formatSource(source)}` : ""}
-      </p>
+      {!hideSources && (
+        <p className="oa-data-not-found-sources mono">
+          Sources checked: {sourcesTried.map(formatSource).join(" · ")}
+          {source && source !== "none" ? ` · Using ${formatSource(source)}` : ""}
+        </p>
+      )}
       {onRetry && (
         <button type="button" className="oa-data-not-found-retry mono" onClick={onRetry}>
           Try again

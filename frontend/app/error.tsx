@@ -2,7 +2,9 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { scaleIn } from "@/lib/siteMotion";
 import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
 export default function Error({
@@ -18,7 +20,13 @@ export default function Error({
 
   return (
     <div className="error-page-root">
-      <div className="error-page-card">
+      <motion.div
+        className="error-page-card"
+        initial="hidden"
+        animate="visible"
+        custom={0}
+        variants={scaleIn}
+      >
         <LoadingSpinner size="md" />
         <div className="error-page-code mono">500</div>
         <h1 className="error-page-title">Something Went Wrong</h1>
@@ -36,7 +44,7 @@ export default function Error({
         <p className="error-page-hint mono">
           If this persists: bash scripts/run.sh · hard refresh Cmd+Shift+R
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

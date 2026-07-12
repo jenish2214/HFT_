@@ -14,6 +14,7 @@ import {
 import type { MarketSession, TickInfo } from "@/lib/marketTypes";
 import { isMarketOpen } from "@/lib/marketTypes";
 import { chartPageUrl } from "@/lib/chartIndicators";
+import ChartFullscreenLink from "@/components/ChartFullscreenLink";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ChartSymbolBar from "@/components/ChartSymbolBar";
 
@@ -440,15 +441,11 @@ export default function BloombergTerminalChart({
             />
           )}
           {marketOpen && timeframe === "1D" && <span className="bloomberg-live-badge">LIVE</span>}
-          <a
+          <ChartFullscreenLink
             href={chartPageUrl(symbol, timeframe)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="chart-fullscreen-btn mono"
             title="Open full-screen chart with indicators"
-          >
-            FULL CHART ↗
-          </a>
+            external
+          />
         </div>
 
         <div className="chart-timeframe-row">

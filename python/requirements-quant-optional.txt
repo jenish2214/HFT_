@@ -1,0 +1,5 @@
+# Heavy optional quant stack — install on top of requirements.txt when needed
+vectorbt>=0.26.0
+backtrader>=1.9.78
+zipline-reloaded>=3.0.0
+pyfolio-reloaded>=0.9.5

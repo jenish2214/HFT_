@@ -648,16 +648,6 @@ async def get_quant_research(symbol: str = "AAPL", tickers: str = ""):
         if tickers.strip():
             ticker_list = [validate_symbol(t.strip()) for t in tickers.split(",") if t.strip()]
         result = await run_sync(run_quant_research, sym, ticker_list)
-        try:
-            stats = await run_sync(engine.get_stats)
-            result["engine"] = {
-                "source": "cpp-matching-engine",
-                "avg_latency_ns": stats.get("stats", {}).get("avg_latency_ns", 0),
-                "total_orders": stats.get("stats", {}).get("total_orders", 0),
-                "total_trades": stats.get("stats", {}).get("total_trades", 0),
-            }
-        except Exception:
-            result["engine"] = {"source": "cpp-matching-engine", "status": "offline"}
         return result
     except ValueError as exc:
         return JSONResponse(status_code=400, content={"status": "error", "message": str(exc)})

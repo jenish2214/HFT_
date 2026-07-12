@@ -1,10 +1,20 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { scaleIn } from "@/lib/siteMotion";
 import { PRODUCT_NAME } from "@/lib/orionAlpha";
 
 export default function NotFound() {
   return (
     <div className="error-page-root">
-      <div className="error-page-card">
+      <motion.div
+        className="error-page-card"
+        initial="hidden"
+        animate="visible"
+        custom={0}
+        variants={scaleIn}
+      >
         <div className="error-page-code mono">404</div>
         <h1 className="error-page-title">Page Not Found</h1>
         <p className="error-page-msg">
@@ -19,7 +29,7 @@ export default function NotFound() {
         <p className="error-page-hint mono">
           CMD: AAPL &lt;GO&gt; · FA · GP · HELP
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

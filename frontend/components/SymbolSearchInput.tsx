@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ASSET_CLASS_SHORT } from "@/lib/orionAlpha";
 import { searchSymbolGroups, type SymbolSearchGroup } from "@/lib/symbolCatalog";
 import { validateSymbol } from "@/lib/security";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface Props {
   value?: string;
@@ -150,8 +151,9 @@ export default function SymbolSearchInput({
             className="sym-search-go"
             disabled={loading}
             onClick={submitRaw}
+            aria-busy={loading}
           >
-            GO
+            {loading ? <LoadingSpinner size="sm" /> : "GO"}
           </button>
         )}
       </div>
