@@ -11,6 +11,7 @@ import { ResearchDeskBar } from "@/components/QuantResearchDesk";
 import QuantSymbolCards from "@/components/QuantSymbolCards";
 import QuantCompanyProfile from "@/components/QuantCompanyProfile";
 import QuantEducationLab from "@/components/QuantEducationLab";
+import QuantStatsPanel from "@/components/QuantStatsPanel";
 import type { QuantResearchData } from "@/lib/quantResearchTypes";
 import { QUANT_DEFAULT_TICKERS } from "@/lib/quantResearchTypes";
 import { getQuantCache, setQuantCache } from "@/lib/quantCache";
@@ -223,6 +224,8 @@ export default function QuantResearchDashboard() {
       {quantData && (
         <div className={`qr-content-wrap${fetching ? " qr-content-refreshing" : ""}`}>
           <ResearchDeskBar data={quantData} primary={primary} />
+
+          <QuantStatsPanel data={quantData} primary={primary} />
 
           <QuantEducationLab data={quantData} primary={primary} />
 

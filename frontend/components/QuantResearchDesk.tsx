@@ -12,20 +12,17 @@ export interface KpiItem {
 export function ResearchDeskBar({ data, primary }: { data: QuantResearchData; primary: string }) {
   const risk = data.risk_metrics.find((r) => r.symbol === primary);
   const capm = data.capm.find((c) => c.symbol === primary);
-  const factor = data.factor_scores.find((f) => f.symbol === primary);
-  const mc = data.monte_carlo.find((m) => m.symbol === primary);
   const profile = data.primary_profile ?? data.company_profiles?.[primary];
 
   const kpis: KpiItem[] = [
     { label: "Last", value: risk?.latest_price != null ? `$${risk.latest_price.toFixed(2)}` : "—" },
-    { label: "Sharpe", value: risk?.sharpe != null ? String(risk.sharpe) : "—" },
+    { label: "QS Sharpe", value: data.quantstats?.sharpe != null ? String(data.quantstats.sharpe) : (risk?.sharpe != null ? String(risk.sharpe) : "—") },
     { label: "Ann vol", value: risk?.ann_vol_pct != null ? `${risk.ann_vol_pct}%` : "—" },
     { label: "Max DD", value: risk?.max_drawdown_pct != null ? `${risk.max_drawdown_pct}%` : "—", tone: "neg" },
     { label: "Alpha", value: capm?.alpha_ann_pct != null ? `${capm.alpha_ann_pct}%` : "—", tone: (capm?.alpha_ann_pct ?? 0) >= 0 ? "pos" : "neg" },
     { label: "Beta", value: capm?.beta != null ? String(capm.beta) : "—" },
-    { label: "Composite α", value: factor?.composite_alpha?.toFixed(3) ?? "—" },
-    { label: "RSI 14", value: factor?.rsi_14?.toFixed(1) ?? "—" },
-    { label: "MC median", value: mc?.p50 != null ? `$${mc.p50.toFixed(2)}` : "—" },
+    { label: "Calmar", value: data.quantstats?.calmar != null ? String(data.quantstats.calmar) : "—" },
+    { label: "Win rate", value: data.quantstats?.win_rate_pct != null ? `${data.quantstats.win_rate_pct}%` : "—" },
   ];
 
   return (

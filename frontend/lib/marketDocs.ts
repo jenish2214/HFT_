@@ -95,7 +95,12 @@ export const MARKET_DOC_SECTIONS: DocSection[] = [
       {
         id: "sharpe",
         term: "Sharpe ratio",
-        body: "Excess return per unit of total risk (return ÷ volatility, vs a risk-free rate). Above 1 is often considered strong in textbooks; the lab uses it to compare symbols in tables.",
+        body: "Excess return per unit of total risk. Research uses QuantStats (qs.stats.sharpe / returns.sharpe()) when available.",
+      },
+      {
+        id: "quantstats",
+        term: "QuantStats",
+        body: "Python library for portfolio metrics on daily returns — Sharpe, Sortino, Calmar, max drawdown, win rate. Wired into /research via qs.extend_pandas().",
       },
       {
         id: "sortino",

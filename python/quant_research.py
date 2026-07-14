@@ -20,6 +20,15 @@ try:
 except ImportError:
     HAS_STATSMODELS = False
 
+try:
+    import quantstats as qs
+
+    qs.extend_pandas()
+    HAS_QUANTSTATS = True
+except ImportError:
+    qs = None  # type: ignore[assignment]
+    HAS_QUANTSTATS = False
+
 DEFAULT_TICKERS = ["AAPL", "MSFT", "NVDA", "GOOGL"]
 DEFAULT_BENCHMARK = "SPY"
 DEFAULT_PERIOD = "2y"
@@ -93,27 +102,287 @@ def cagr(prices: pd.Series) -> float:
 
 
 def sharpe_ratio(returns: pd.Series, rf_daily: float = RF_DAILY) -> float:
-    if returns.std() == 0:
+    """Sharpe — prefer QuantStats (qs.stats.sharpe / series.sharpe()) when available."""
+    clean = returns.dropna()
+    if len(clean) < 2 or clean.std() == 0:
         return 0.0
-    excess = returns.mean() - rf_daily
-    return float(excess / returns.std() * np.sqrt(252))
+    if HAS_QUANTSTATS and qs is not None:
+        try:
+            return float(qs.stats.sharpe(clean, rf=RISK_FREE_RATE))
+        except Exception:
+            try:
+                return float(clean.sharpe(rf=RISK_FREE_RATE))
+            except Exception:
+                pass
+    excess = clean.mean() - rf_daily
+    return float(excess / clean.std() * np.sqrt(252))
 
 
 def sortino_ratio(returns: pd.Series, rf_daily: float = RF_DAILY) -> float:
-    downside = returns[returns < rf_daily]
+    clean = returns.dropna()
+    if len(clean) < 2:
+        return 0.0
+    if HAS_QUANTSTATS and qs is not None:
+        try:
+            return float(qs.stats.sortino(clean, rf=RISK_FREE_RATE))
+        except Exception:
+            pass
+    downside = clean[clean < rf_daily]
     ds = downside.std()
     if ds == 0:
         return 0.0
-    return float((returns.mean() - rf_daily) / ds * np.sqrt(252))
+    return float((clean.mean() - rf_daily) / ds * np.sqrt(252))
 
 
 def max_drawdown(prices: pd.Series) -> float:
+    if HAS_QUANTSTATS and qs is not None:
+        try:
+            rets = prices.pct_change().dropna()
+            return float(qs.stats.max_drawdown(rets))
+        except Exception:
+            pass
     cum = prices / prices.iloc[0]
     return float((cum / cum.cummax() - 1).min())
 
 
 def value_at_risk(returns: pd.Series, alpha: float = 0.05) -> float:
-    return float(np.percentile(returns, alpha * 100))
+    if HAS_QUANTSTATS and qs is not None:
+        try:
+            return float(qs.stats.value_at_risk(returns.dropna(), confidence=1 - alpha))
+        except Exception:
+            pass
+    return float(np.percentile(returns.dropna(), alpha * 100))
+
+
+def _qs_safe(fn, *args, **kwargs):
+    try:
+        return fn(*args, **kwargs)
+    except Exception:
+        return None
+
+
+def _downsample_series(series: pd.Series, max_points: int = 120) -> list[dict]:
+    if series is None or len(series) == 0:
+        return []
+    s = series.dropna()
+    if len(s) > max_points:
+        idx = np.linspace(0, len(s) - 1, max_points).astype(int)
+        s = s.iloc[idx]
+    out = []
+    for ts, val in s.items():
+        date = str(ts.date()) if hasattr(ts, "date") else str(ts)[:10]
+        out.append({"date": date, "value": _safe_float(val, 4)})
+    return out
+
+
+def quantstats_snapshot(
+    returns: pd.Series,
+    symbol: str,
+    benchmark_returns: pd.Series | None = None,
+) -> dict[str, Any]:
+    """Full QuantStats research bundle — stats + easy charts (JSON-safe).
+
+    Mirrors https://github.com/ranaroussi/quantstats usage:
+    qs.extend_pandas(), qs.stats.*, monthly returns, drawdown, MC bust/goal.
+    """
+    clean = returns.dropna()
+    base: dict[str, Any] = {
+        "symbol": symbol,
+        "source": "quantstats" if HAS_QUANTSTATS else "fallback",
+        "available": HAS_QUANTSTATS,
+    }
+    if len(clean) < 30:
+        return {**base, "data_found": False}
+
+    # ── Core headline metrics (easy scan) ──
+    sharpe = _safe_float(sharpe_ratio(clean), 3)
+    sortino = _safe_float(sortino_ratio(clean), 3)
+    vol = _safe_float(annualized_vol(clean) * 100, 2)
+    cagr_pct = max_dd_pct = calmar = win_rate = best_day = worst_day = None
+    profit_factor = payoff = kelly = cvar = ulcer = tail = None
+    avg_win = avg_loss = recovery = None
+    info_ratio = None
+
+    if HAS_QUANTSTATS and qs is not None:
+        cagr_pct = _safe_float(_qs_safe(lambda: float(qs.stats.cagr(clean)) * 100), 2)
+        max_dd_pct = _safe_float(_qs_safe(lambda: float(qs.stats.max_drawdown(clean)) * 100), 2)
+        calmar = _safe_float(_qs_safe(lambda: qs.stats.calmar(clean)), 3)
+        win_rate = _safe_float(_qs_safe(lambda: float(qs.stats.win_rate(clean)) * 100), 1)
+        best_day = _safe_float(_qs_safe(lambda: float(qs.stats.best(clean)) * 100), 2)
+        worst_day = _safe_float(_qs_safe(lambda: float(qs.stats.worst(clean)) * 100), 2)
+        profit_factor = _safe_float(_qs_safe(lambda: qs.stats.profit_factor(clean)), 2)
+        payoff = _safe_float(_qs_safe(lambda: qs.stats.payoff_ratio(clean)), 2)
+        kelly = _safe_float(_qs_safe(lambda: float(qs.stats.kelly_criterion(clean)) * 100), 1)
+        cvar = _safe_float(_qs_safe(lambda: float(qs.stats.cvar(clean)) * 100), 2)
+        ulcer = _safe_float(_qs_safe(lambda: qs.stats.ulcer_index(clean)), 3)
+        tail = _safe_float(_qs_safe(lambda: qs.stats.tail_ratio(clean)), 2)
+        avg_win = _safe_float(_qs_safe(lambda: float(qs.stats.avg_win(clean)) * 100), 2)
+        avg_loss = _safe_float(_qs_safe(lambda: float(qs.stats.avg_loss(clean)) * 100), 2)
+        recovery = _safe_float(_qs_safe(lambda: qs.stats.recovery_factor(clean)), 2)
+        sharpe = _safe_float(_qs_safe(lambda: float(clean.sharpe(rf=RISK_FREE_RATE))), 3) or sharpe
+        if benchmark_returns is not None and len(benchmark_returns.dropna()) >= 30:
+            aligned = pd.concat([clean, benchmark_returns.dropna()], axis=1, join="inner").dropna()
+            if len(aligned) >= 30:
+                info_ratio = _safe_float(
+                    _qs_safe(lambda: qs.stats.information_ratio(aligned.iloc[:, 0], aligned.iloc[:, 1])),
+                    3,
+                )
+    else:
+        prices_approx = (1 + clean).cumprod()
+        max_dd_pct = _safe_float(max_drawdown(prices_approx) * 100, 2)
+        n = len(clean)
+        cagr_pct = _safe_float(((1 + clean).prod() ** (252 / n) - 1) * 100, 2) if n else None
+
+    avg_return = _safe_float(float(clean.mean() * 252) * 100, 2)
+
+    # Plain-language scorecard
+    if sharpe is not None and sharpe >= 1.0:
+        score_label = "Strong risk-adjusted return"
+        score_hint = "Sharpe ≥ 1 — reward looks good vs volatility in this window."
+    elif sharpe is not None and sharpe >= 0.5:
+        score_label = "OK risk-adjusted return"
+        score_hint = "Sharpe between 0.5–1 — mixed; check drawdown and win rate."
+    else:
+        score_label = "Weak risk-adjusted return"
+        score_hint = "Sharpe &lt; 0.5 — returns may not repay the risk taken."
+
+    headlines = [
+        {"id": "sharpe", "label": "Sharpe", "value": sharpe, "fmt": "num", "tip": "Return per unit of risk (higher better)"},
+        {"id": "sortino", "label": "Sortino", "value": sortino, "fmt": "num", "tip": "Like Sharpe, only penalizes downside"},
+        {"id": "calmar", "label": "Calmar", "value": calmar, "fmt": "num", "tip": "CAGR ÷ |max drawdown|"},
+        {"id": "cagr", "label": "CAGR", "value": cagr_pct, "fmt": "pct", "tip": "Annualized growth rate"},
+        {"id": "vol", "label": "Volatility", "value": vol, "fmt": "pct", "tip": "Annualized daily vol"},
+        {"id": "maxdd", "label": "Max drawdown", "value": max_dd_pct, "fmt": "pct", "tip": "Worst peak-to-trough drop"},
+        {"id": "win", "label": "Win rate", "value": win_rate, "fmt": "pct", "tip": "% of days with positive return"},
+        {"id": "pf", "label": "Profit factor", "value": profit_factor, "fmt": "num", "tip": "Sum of wins ÷ sum of losses"},
+        {"id": "payoff", "label": "Payoff ratio", "value": payoff, "fmt": "num", "tip": "Avg win ÷ avg loss"},
+        {"id": "kelly", "label": "Kelly %", "value": kelly, "fmt": "pct", "tip": "Suggested fraction of capital (theory)"},
+        {"id": "cvar", "label": "CVaR 95%", "value": cvar, "fmt": "pct", "tip": "Expected loss in worst 5% days"},
+        {"id": "best", "label": "Best day", "value": best_day, "fmt": "pct", "tip": "Best single-day return"},
+        {"id": "worst", "label": "Worst day", "value": worst_day, "fmt": "pct", "tip": "Worst single-day return"},
+        {"id": "tail", "label": "Tail ratio", "value": tail, "fmt": "num", "tip": "95th ÷ 5th percentile abs return"},
+        {"id": "ulcer", "label": "Ulcer index", "value": ulcer, "fmt": "num", "tip": "Drawdown pain measure"},
+        {"id": "recovery", "label": "Recovery", "value": recovery, "fmt": "num", "tip": "Total return ÷ max drawdown"},
+        {"id": "info", "label": "Info ratio", "value": info_ratio, "fmt": "num", "tip": "Excess vs benchmark ÷ tracking error"},
+        {"id": "avgret", "label": "Avg return (ann)", "value": avg_return, "fmt": "pct", "tip": "Mean daily return × 252"},
+    ]
+
+    # ── Grouped full metrics (from qs.reports.metrics when possible) ──
+    metric_groups: list[dict] = []
+    if HAS_QUANTSTATS and qs is not None:
+        try:
+            # Limit to sample window we already have (clean), not full Yahoo history
+            table = qs.reports.metrics(
+                clean,
+                benchmark=benchmark_returns.dropna() if benchmark_returns is not None else None,
+                mode="full",
+                display=False,
+                prepare_returns=False,
+            )
+            raw = {}
+            if isinstance(table, pd.DataFrame) and not table.empty:
+                col = table.columns[0]
+                raw = {str(k): table[col].loc[k] for k in table.index}
+
+            def _pick(keys: list[str]) -> list[dict]:
+                rows = []
+                for k in keys:
+                    if k not in raw:
+                        continue
+                    v = raw[k]
+                    if isinstance(v, (int, float)) and not (math.isnan(v) or math.isinf(v)):
+                        rows.append({"label": k, "value": _safe_float(v, 4)})
+                    else:
+                        rows.append({"label": k, "value": str(v)})
+                return rows
+
+            metric_groups = [
+                {"title": "Returns", "rows": _pick(["Cumulative Return", "CAGR﹪", "MTD", "3M", "6M", "YTD", "1Y", "All-time (ann.)"])},
+                {"title": "Risk", "rows": _pick(["Sharpe", "Sortino", "Volatility (ann.)", "Max Drawdown", "Avg. Drawdown", "Ulcer Index", "VaR", "CVaR"])},
+                {"title": "Edge", "rows": _pick(["Win Rate", "Profit Factor", "Payoff Ratio", "Gain/Pain Ratio", "Kelly Criterion", "Common Sense Ratio", "Tail Ratio"])},
+            ]
+            metric_groups = [g for g in metric_groups if g["rows"]]
+        except Exception as exc:
+            print(f"[quant] qs.reports.metrics failed: {exc}")
+
+    # ── Equity curve + drawdown (for simple charts) ──
+    equity = (1 + clean).cumprod()
+    equity_norm = equity / float(equity.iloc[0]) * 100
+    dd_series = None
+    if HAS_QUANTSTATS and qs is not None:
+        try:
+            dd_series = qs.stats.to_drawdown_series(clean)
+        except Exception:
+            dd_series = equity / equity.cummax() - 1
+    else:
+        dd_series = equity / equity.cummax() - 1
+
+    # ── Monthly returns heatmap (years × months) ──
+    monthly_heatmap: dict[str, Any] = {"months": [], "years": [], "values": []}
+    if HAS_QUANTSTATS and qs is not None:
+        try:
+            mr = qs.stats.monthly_returns(clean)
+            # columns often JAN..DEC + EOY
+            months = [c for c in mr.columns if str(c).upper() != "EOY"]
+            years = [str(y) for y in mr.index.tolist()[-6:]]  # last 6 years
+            values = []
+            for y in mr.index.tolist()[-6:]:
+                row = []
+                for m in months:
+                    val = mr.loc[y, m]
+                    row.append(_safe_float(float(val) * 100, 2) if pd.notna(val) else None)
+                values.append(row)
+            monthly_heatmap = {
+                "months": [str(m)[:3].upper() for m in months],
+                "years": years,
+                "values": values,
+            }
+        except Exception as exc:
+            print(f"[quant] monthly_returns failed: {exc}")
+
+    # ── QuantStats Monte Carlo (bust / goal probs) ──
+    mc_block: dict[str, Any] | None = None
+    if HAS_QUANTSTATS and qs is not None:
+        try:
+            mc = qs.stats.montecarlo(clean.tail(min(504, len(clean))), sims=800, bust=-0.20, goal=0.50)
+            mc_block = {
+                "sims": 800,
+                "bust_threshold_pct": -20.0,
+                "goal_threshold_pct": 50.0,
+                "bust_probability_pct": _safe_float(float(mc.bust_probability) * 100, 1),
+                "goal_probability_pct": _safe_float(float(mc.goal_probability) * 100, 1),
+                "hint": "Chance of −20% bust vs +50% goal over simulated paths (QuantStats).",
+            }
+        except Exception as exc:
+            print(f"[quant] qs.stats.montecarlo failed: {exc}")
+
+    return {
+        **base,
+        "data_found": True,
+        "score_label": score_label,
+        "score_hint": score_hint.replace("&lt;", "<"),
+        "sharpe": sharpe,
+        "sortino": sortino,
+        "calmar": calmar,
+        "cagr_pct": cagr_pct,
+        "ann_vol_pct": vol,
+        "max_drawdown_pct": max_dd_pct,
+        "win_rate_pct": win_rate,
+        "best_day_pct": best_day,
+        "worst_day_pct": worst_day,
+        "avg_return_pct": avg_return,
+        "profit_factor": profit_factor,
+        "payoff_ratio": payoff,
+        "kelly_pct": kelly,
+        "cvar_pct": cvar,
+        "trading_days": int(len(clean)),
+        "headlines": headlines,
+        "metric_groups": metric_groups,
+        "equity_curve": _downsample_series(equity_norm, 120),
+        "drawdown_curve": _downsample_series(dd_series * 100, 120),
+        "monthly_heatmap": monthly_heatmap,
+        "montecarlo": mc_block,
+    }
 
 
 def sma(series: pd.Series, window: int) -> pd.Series:
@@ -701,6 +970,26 @@ def run_quant_research(
 
     primary_mc = next((m for m in mc_rows if m["symbol"] == sym), mc_rows[0] if mc_rows else None)
     primary_factor = next((f for f in factor_rows if f["symbol"] == sym), factor_rows[0] if factor_rows else None)
+    qs_snapshot = quantstats_snapshot(
+        rets[sym],
+        sym,
+        mkt_series if mkt_series is not None else None,
+    )
+
+    # Prefer QuantStats sharpe on primary risk row when available
+    if qs_snapshot.get("data_found") and qs_snapshot.get("sharpe") is not None:
+        for row in risk_rows:
+            if row["symbol"] == sym:
+                row["sharpe"] = qs_snapshot["sharpe"]
+                if qs_snapshot.get("sortino") is not None:
+                    row["sortino"] = qs_snapshot["sortino"]
+                if qs_snapshot.get("max_drawdown_pct") is not None:
+                    row["max_drawdown_pct"] = qs_snapshot["max_drawdown_pct"]
+                if qs_snapshot.get("cagr_pct") is not None:
+                    row["cagr_pct"] = qs_snapshot["cagr_pct"]
+                if qs_snapshot.get("ann_vol_pct") is not None:
+                    row["ann_vol_pct"] = qs_snapshot["ann_vol_pct"]
+                break
 
     result = {
         "primary": sym,
@@ -743,7 +1032,8 @@ def run_quant_research(
         },
         "predictions": compute_predictions(sym, patterns, primary_mc, primary_factor),
         "momentum_lab": compute_momentum_buy_lab(sym, prices[sym], primary_factor),
-        "methodology": "Educational quant lab — factor engine, CAPM, Monte Carlo GBM (demo)",
+        "quantstats": qs_snapshot,
+        "methodology": "Educational quant lab — QuantStats Sharpe/Sortino, factor engine, CAPM, Monte Carlo GBM",
         "updated_ts": now,
     }
 

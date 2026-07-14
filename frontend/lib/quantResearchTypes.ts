@@ -131,6 +131,74 @@ export interface QuantCompanyProfile {
   partial?: boolean;
 }
 
+export interface QuantStatsHeadline {
+  id: string;
+  label: string;
+  value: number | null;
+  fmt: "num" | "pct";
+  tip?: string;
+}
+
+export interface QuantStatsMetricRow {
+  label: string;
+  value: number | string | null;
+}
+
+export interface QuantStatsMetricGroup {
+  title: string;
+  rows: QuantStatsMetricRow[];
+}
+
+export interface QuantStatsCurvePoint {
+  date: string;
+  value: number | null;
+}
+
+export interface QuantStatsMonthlyHeatmap {
+  months: string[];
+  years: string[];
+  values: (number | null)[][];
+}
+
+export interface QuantStatsMonteCarlo {
+  sims: number;
+  bust_threshold_pct: number;
+  goal_threshold_pct: number;
+  bust_probability_pct: number | null;
+  goal_probability_pct: number | null;
+  hint?: string;
+}
+
+export interface QuantStatsSnapshot {
+  symbol: string;
+  source: string;
+  available: boolean;
+  data_found?: boolean;
+  score_label?: string;
+  score_hint?: string;
+  sharpe?: number | null;
+  sortino?: number | null;
+  calmar?: number | null;
+  cagr_pct?: number | null;
+  ann_vol_pct?: number | null;
+  max_drawdown_pct?: number | null;
+  win_rate_pct?: number | null;
+  best_day_pct?: number | null;
+  worst_day_pct?: number | null;
+  avg_return_pct?: number | null;
+  profit_factor?: number | null;
+  payoff_ratio?: number | null;
+  kelly_pct?: number | null;
+  cvar_pct?: number | null;
+  trading_days?: number;
+  headlines?: QuantStatsHeadline[];
+  metric_groups?: QuantStatsMetricGroup[];
+  equity_curve?: QuantStatsCurvePoint[];
+  drawdown_curve?: QuantStatsCurvePoint[];
+  monthly_heatmap?: QuantStatsMonthlyHeatmap;
+  montecarlo?: QuantStatsMonteCarlo | null;
+}
+
 export interface QuantResearchData {
   primary: string;
   tickers: string[];
@@ -188,6 +256,7 @@ export interface QuantResearchData {
   methodology: string;
   predictions?: QuantPredictions;
   momentum_lab?: QuantMomentumLab;
+  quantstats?: QuantStatsSnapshot;
   engine?: QuantEngineStats;
   message?: string;
   updated_ts?: number;
