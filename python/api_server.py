@@ -465,6 +465,8 @@ async def lifespan(app: FastAPI):
     running = True
     loop = asyncio.get_event_loop()
     loop.run_in_executor(None, fetch_watchlist)
+    # Warm popular research symbol so first user click is cached
+    loop.run_in_executor(None, lambda: run_quant_research("AAPL"))
     task = asyncio.create_task(trading_loop())
     keepalive = asyncio.create_task(ws_keepalive_loop())
     yield

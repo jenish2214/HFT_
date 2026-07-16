@@ -201,7 +201,13 @@ export default function QuantResearchDashboard() {
     }
     setFetching(true);
 
-    loadQuantResearch(primary, QUANT_DEFAULT_TICKERS)
+    loadQuantResearch(primary, QUANT_DEFAULT_TICKERS, (profile) => {
+      if (cancelled) return;
+      // Show quote/profile immediately while full quant is still loading
+      if (!getQuantCache(primary)) {
+        setLiteProfile(profile);
+      }
+    })
       .then((result) => {
         if (cancelled) return;
 

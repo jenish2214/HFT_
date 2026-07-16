@@ -1,7 +1,7 @@
 import type { QuantResearchData } from "@/lib/quantResearchTypes";
 
 const PREFIX = "qr-v3";
-const TTL_MS = 5 * 60 * 1000;
+const TTL_MS = 15 * 60 * 1000;
 
 export function getQuantCache(symbol: string): QuantResearchData | null {
   if (typeof sessionStorage === "undefined") return null;

@@ -31,14 +31,18 @@ except ImportError:
 
 DEFAULT_TICKERS = ["AAPL", "MSFT", "NVDA", "GOOGL"]
 DEFAULT_BENCHMARK = "SPY"
-DEFAULT_PERIOD = "2y"
+DEFAULT_PERIOD = "1y"
 RISK_FREE_RATE = 0.04
 RF_DAILY = (1 + RISK_FREE_RATE) ** (1 / 252) - 1
 RANDOM_SEED = 42
 
 _quant_cache: dict[str, dict] = {}
 _quant_cache_ts: dict[str, float] = {}
-_QUANT_TTL = 300.0
+# Longer TTL so repeat symbol loads feel instant for users
+_QUANT_TTL = 900.0
+_MC_UNIVERSE_SIMS = 400
+_MC_PRIMARY_SIMS = 800
+_MC_FAN_SIMS = 200
 
 
 def _safe_float(v: Any, decimals: int = 4) -> float | None:
@@ -69,18 +73,64 @@ def _get_close(df: pd.DataFrame) -> pd.Series:
     raise KeyError("Close column not found")
 
 
+def _download_one_ticker(ticker: str, period: str) -> tuple[str, pd.Series | None]:
+    try:
+        raw = yf.download(ticker, period=period, auto_adjust=True, progress=False, threads=False)
+        if raw is None or raw.empty:
+            return ticker, None
+        s = _get_close(raw)
+        if len(s) < 30:
+            return ticker, None
+        return ticker, s
+    except Exception as exc:
+        print(f"[quant] download failed {ticker}: {exc}")
+        return ticker, None
+
+
 def download_prices(tickers: list[str], period: str = DEFAULT_PERIOD) -> pd.DataFrame:
+    """Download close prices in parallel — much faster than sequential yfinance calls."""
+    unique = list(dict.fromkeys(tickers))
     prices: dict[str, pd.Series] = {}
-    for t in tickers:
+
+    # Prefer one multi-ticker pull when possible (fastest path)
+    if len(unique) > 1:
         try:
-            raw = yf.download(t, period=period, auto_adjust=True, progress=False)
-            if raw is None or raw.empty:
-                continue
-            s = _get_close(raw)
-            if len(s) >= 30:
-                prices[t] = s
+            raw = yf.download(
+                unique,
+                period=period,
+                auto_adjust=True,
+                progress=False,
+                group_by="ticker",
+                threads=True,
+            )
+            if raw is not None and not raw.empty:
+                for t in unique:
+                    try:
+                        if isinstance(raw.columns, pd.MultiIndex):
+                            if t in raw.columns.get_level_values(0):
+                                sub = raw[t]
+                            else:
+                                continue
+                        else:
+                            sub = raw
+                        s = _get_close(sub if isinstance(sub, pd.DataFrame) else pd.DataFrame(sub))
+                        if len(s) >= 30:
+                            prices[t] = s
+                    except Exception:
+                        continue
         except Exception as exc:
-            print(f"[quant] download failed {t}: {exc}")
+            print(f"[quant] batch download failed, falling back to parallel: {exc}")
+
+    missing = [t for t in unique if t not in prices]
+    if missing:
+        workers = min(6, len(missing))
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = [pool.submit(_download_one_ticker, t, period) for t in missing]
+            for fut in as_completed(futures):
+                t, series = fut.result()
+                if series is not None:
+                    prices[t] = series
+
     if not prices:
         raise ValueError("No valid price data downloaded")
     return pd.DataFrame(prices).sort_index().ffill().dropna(how="all")
@@ -701,7 +751,7 @@ def compute_predictions(
             "id": "monte-carlo",
             "name": "Monte Carlo GBM",
             "stack": "Python",
-            "role": "1Y price path simulation (1500 paths)",
+            "role": f"1Y price path simulation ({_MC_PRIMARY_SIMS} paths)",
             "status": "live",
         },
     ]
@@ -770,12 +820,25 @@ def _company_snapshot(symbol: str) -> dict[str, Any]:
     }
 
 
-def _company_profiles_parallel(tickers: list[str]) -> dict[str, dict[str, Any]]:
+def _company_profiles_parallel(tickers: list[str], primary: str | None = None) -> dict[str, dict[str, Any]]:
+    """Fetch primary profile first (needed for UI), then peers in parallel with a tight pool."""
     unique = list(dict.fromkeys(tickers))
     profiles: dict[str, dict[str, Any]] = {}
-    workers = min(6, max(1, len(unique)))
+
+    # Primary first — user-facing overview should not wait on every peer
+    if primary and primary in unique:
+        try:
+            profiles[primary] = _company_snapshot(primary)
+        except Exception:
+            profiles[primary] = {"symbol": primary, "data_found": False}
+
+    peers = [t for t in unique if t not in profiles]
+    if not peers:
+        return profiles
+
+    workers = min(4, max(1, len(peers)))
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {pool.submit(_company_snapshot, sym): sym for sym in unique}
+        futures = {pool.submit(_company_snapshot, sym): sym for sym in peers}
         for fut in as_completed(futures):
             sym = futures[fut]
             try:
@@ -831,7 +894,8 @@ def run_quant_research(
         alpha, beta = capm_regression(r, mkt_series) if mkt_series is not None else (0.0, 1.0)
         lr = np.log(p / p.shift(1)).dropna()
         mu, sig = float(lr.mean()), float(lr.std())
-        mc = monte_carlo_gbm(float(p.iloc[-1]), mu, sig, 252, 1500)
+        sims = _MC_PRIMARY_SIMS if t == sym else _MC_UNIVERSE_SIMS
+        mc = monte_carlo_gbm(float(p.iloc[-1]), mu, sig, 252, sims)
 
         risk_rows.append({
             "symbol": t,
@@ -949,7 +1013,7 @@ def run_quant_research(
     lr = np.log(primary_prices / primary_prices.shift(1)).dropna()
     mu, sig = float(lr.tail(63).mean()), float(lr.tail(63).std())
     s0 = float(primary_prices.iloc[-1])
-    mc_paths = _simulate_gbm_paths(s0, mu, sig, 63, 400, RANDOM_SEED)
+    mc_paths = _simulate_gbm_paths(s0, mu, sig, 63, _MC_FAN_SIMS, RANDOM_SEED)
     mc_fan = {
         "symbol": sym,
         "current": _safe_float(s0, 2),
@@ -1011,7 +1075,7 @@ def run_quant_research(
         "factor_ic": ic_rows,
         "pattern_signals": patterns,
         "correlation": corr_matrix,
-        "company_profiles": (profiles := _company_profiles_parallel(available)),
+        "company_profiles": (profiles := _company_profiles_parallel(available, sym)),
         "primary_profile": profiles.get(sym) or _company_snapshot(sym),
         "charts": {
             "price_series": price_chart,

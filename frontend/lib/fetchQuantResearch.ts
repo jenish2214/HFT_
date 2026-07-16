@@ -44,34 +44,53 @@ function isFullQuant(data: QuantResearchData | null): data is QuantResearchData 
   return !!data && data.data_found !== false && !!data.date_range && !!data.summary;
 }
 
-/** Load quant research via /api proxy. Falls back to research profile. */
+/**
+ * Load quant research via /api proxy.
+ * Starts profile + quant in parallel so a lite view can appear while full research finishes.
+ */
 export async function loadQuantResearch(
   symbol: string,
   tickers: string[] = QUANT_DEFAULT_TICKERS,
+  onLite?: (profile: ResearchProfile) => void,
 ): Promise<QuantFetchResult> {
   const qs = quantQuery(symbol, tickers);
   const base = apiBase();
-  let totalLatency = 0;
 
-  const quant = await fetchJson<QuantResearchData & { status?: string }>(
+  const quantPromise = fetchJson<QuantResearchData & { status?: string }>(
     `${base}/research/quant?${qs}`,
   );
-  totalLatency += quant.latencyMs;
-  if (quant.ok && quant.data && isFullQuant(quant.data) && quant.data.status !== "error") {
-    return { mode: "full", data: quant.data, via: base, latencyMs: totalLatency };
+  const profilePromise = fetchJson<ResearchProfile>(
+    `${base}/research/profile?symbol=${encodeURIComponent(symbol)}`,
+    12_000,
+  );
+
+  // Surface lite profile as soon as it arrives (do not wait for full quant)
+  if (onLite) {
+    void profilePromise.then((profile) => {
+      if (profile.ok && profile.data && profile.data.quote?.price && profile.data.data_found !== false) {
+        onLite(profile.data);
+      }
+    });
   }
 
-  const profile = await fetchJson<ResearchProfile>(
-    `${base}/research/profile?symbol=${encodeURIComponent(symbol)}`,
-  );
-  totalLatency += profile.latencyMs;
+  const quant = await quantPromise;
+  if (quant.ok && quant.data && isFullQuant(quant.data) && quant.data.status !== "error") {
+    return { mode: "full", data: quant.data, via: base, latencyMs: quant.latencyMs };
+  }
+
+  const profile = await profilePromise;
   if (profile.ok && profile.data && profile.data.quote?.price && profile.data.data_found !== false) {
-    return { mode: "lite", profile: profile.data, via: base, latencyMs: totalLatency };
+    return {
+      mode: "lite",
+      profile: profile.data,
+      via: base,
+      latencyMs: quant.latencyMs + profile.latencyMs,
+    };
   }
 
   return {
     mode: "error",
     message: "Quant research API is unavailable. Use the chart or terminal below, or restart the server.",
-    latencyMs: totalLatency,
+    latencyMs: quant.latencyMs + profile.latencyMs,
   };
 }
