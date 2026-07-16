@@ -1,0 +1,112 @@
+/**
+ * Terminal & chart — larger readable fonts only (original dark desk colors preserved)
+ */
+
+.terminal-body,
+.chart-body,
+.terminal-shell,
+.fs-chart-root {
+  font-size: 13px;
+  line-height: 1.45;
+  font-family: var(--font-poppins), "Poppins", system-ui, sans-serif;
+}
+
+.terminal-body .report-muted,
+.chart-body .report-muted { font-size: 12px; }
+
+.terminal-body .panel-title,
+.chart-body .panel-title { font-size: 11px; }
+
+.terminal-body td,
+.terminal-body th,
+.chart-body td,
+.chart-body th { font-size: 12px; }
+
+.terminal-body .btn,
+.chart-body .btn { font-size: 13px; padding: 5px 10px; }
+
+.terminal-body .bb-status-label,
+.chart-body .bb-status-label { font-size: 11px; }
+
+.terminal-body .trader-brand-title,
+.chart-body .trader-brand-title { font-size: 14px; }
+
+.terminal-body .trader-brand-sub,
+.chart-body .trader-brand-sub { font-size: 11px; }
+
+.terminal-body .trader-status,
+.chart-body .trader-status { font-size: 12px; }
+
+.terminal-body .trader-metric-label,
+.chart-body .trader-metric-label { font-size: 11px; }
+
+.terminal-body .trader-metric-value,
+.chart-body .trader-metric-value { font-size: 14px; }
+
+.terminal-body .trader-metric-lg .trader-metric-value,
+.chart-body .trader-metric-lg .trader-metric-value { font-size: 20px; }
+
+.terminal-body .market-bar-ticks,
+.terminal-body .market-bar-updated,
+.chart-body .market-bar-ticks,
+.chart-body .market-bar-updated { font-size: 11px; }
+
+.terminal-body .data-cell-label,
+.chart-body .data-cell-label { font-size: 11px; }
+
+.terminal-body .pnl-summary-label,
+.chart-body .pnl-summary-label { font-size: 11px; }
+
+.terminal-body .ot-title,
+.chart-body .ot-title { font-size: 11px; }
+
+.terminal-body .ot-spread,
+.chart-body .ot-spread { font-size: 11px; }
+
+.terminal-body .bloomberg-bar-count,
+.chart-body .bloomberg-bar-count { font-size: 11px; }
+
+.terminal-body .fs-back-link,
+.chart-body .fs-back-link { font-size: 12px; }
+
+.terminal-body .fs-chart-symbol,
+.chart-body .fs-chart-symbol { font-size: 16px; }
+
+.terminal-body .fs-chart-last,
+.chart-body .fs-chart-last { font-size: 16px; }
+
+.terminal-body .fs-market-tag,
+.chart-body .fs-market-tag { font-size: 11px; }
+
+.terminal-body .fs-crosshair-time,
+.chart-body .fs-crosshair-time { font-size: 12px; }
+
+.terminal-body .chart-tf-btn,
+.chart-body .chart-tf-btn { font-size: 12px; }
+
+.terminal-body input,
+.terminal-body select,
+.chart-body input,
+.chart-body select { font-size: 13px; }
+
+/* Square brand mark on desk — matches site logo */
+.terminal-body .bb-logo.oa-logo,
+.chart-body .bb-logo.oa-logo {
+  border-radius: 2px;
+  background: var(--text-bright);
+  color: var(--bg);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 10px;
+}
+
+@media (max-width: 768px) {
+  .terminal-body,
+  .chart-body {
+    font-size: 14px;
+  }
+}

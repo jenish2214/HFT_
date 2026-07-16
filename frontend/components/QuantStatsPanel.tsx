@@ -85,17 +85,16 @@ export default function QuantStatsPanel({ data, primary }: Props) {
   const mc = qs.montecarlo;
 
   return (
-    <section className="site-section site-section-wide qr-qs-panel" aria-label="QuantStats full report">
+    <section className="site-section site-section-wide qr-qs-panel" aria-label="Performance report">
       <div className="qr-qs-head">
         <div>
-          <p className="qr-edu-eyebrow mono">QuantStats</p>
+          <p className="qr-edu-eyebrow mono">Performance</p>
           <h2 className="site-section-title qr-edu-title">Full performance report — {primary}</h2>
           <p className="site-section-lead qr-edu-lead">
-            One place for Sharpe, risk, monthly returns, drawdown, and Monte Carlo probs.
+            Sharpe, risk, monthly returns, drawdown, and Monte Carlo probabilities.
           </p>
         </div>
         <div className="qr-qs-score">
-          <span className="qr-qs-badge mono">{qs.source === "quantstats" ? "qs.stats" : "fallback"}</span>
           {qs.score_label && <strong className="qr-qs-score-label">{qs.score_label}</strong>}
           {qs.score_hint && <p className="qr-qs-score-hint">{qs.score_hint}</p>}
         </div>
@@ -130,7 +129,7 @@ export default function QuantStatsPanel({ data, primary }: Props) {
       {/* 3. Monte Carlo bust/goal */}
       {mc && (
         <div className="qr-qs-block qr-qs-mc">
-          <h3 className="qr-qs-block-title">Monte Carlo (QuantStats)</h3>
+          <h3 className="qr-qs-block-title">Monte Carlo simulation</h3>
           <p className="qr-qs-mc-hint">{mc.hint}</p>
           <div className="qr-qs-mc-row">
             <div className="qr-qs-mc-card is-bust">

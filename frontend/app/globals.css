@@ -3015,16 +3015,16 @@ tbody tr:hover { background: var(--surface-2); }
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.08em;
-  background: #0f172a !important;
-  border: 1px solid #0f172a !important;
+  background: var(--amex-blue) !important;
+  border: 1px solid var(--amex-blue) !important;
   color: #ffffff !important;
   cursor: pointer;
   border-radius: 0;
   flex-shrink: 0;
 }
 .qr-page .qr-symbol-search .sym-search-go:hover:not(:disabled) {
-  background: #1e293b !important;
-  border-color: #1e293b !important;
+  background: var(--amex-blue-hover) !important;
+  border-color: var(--amex-blue-hover) !important;
 }
 .qr-page .qr-symbol-search .sym-search-go:disabled {
   opacity: 0.85;

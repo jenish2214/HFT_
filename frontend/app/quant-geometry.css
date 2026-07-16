@@ -1,0 +1,263 @@
+/**
+ * Brand accents — square logo mark only. Classic, minimal.
+ */
+
+.site-nav-logo,
+.site-footer-logo,
+.terminal-body .bb-logo.oa-logo,
+.chart-body .bb-logo.oa-logo {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 2px !important;
+  clip-path: none !important;
+  background: var(--amex-navy) !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: #fff !important;
+  padding: 0 !important;
+  box-shadow: none;
+  letter-spacing: -0.04em;
+}
+
+.site-footer-logo {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 10px !important;
+}
+
+.site-nav-link.site-nav-active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: var(--amex-blue);
+}
+
+.site-nav-active {
+  color: var(--amex-navy) !important;
+  font-weight: 600 !important;
+}
+
+.oa-page-header-icon {
+  clip-path: none !important;
+  border-radius: 2px !important;
+}
+
+/* About — team & contact */
+.oa-team-section-head {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.oa-team-icon {
+  color: var(--amex-blue);
+  flex-shrink: 0;
+}
+
+.oa-team-scale {
+  margin-top: 10px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--amex-navy);
+}
+
+.oa-team-expertise-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.oa-team-expertise-card {
+  padding: 16px;
+  background: var(--site-surface-2);
+  border-radius: var(--site-radius-sm);
+  border: 1px solid var(--site-border);
+}
+
+.oa-team-expertise-card h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--amex-navy);
+  margin-bottom: 6px;
+}
+
+.oa-team-expertise-card p {
+  font-size: 0.98rem;
+  color: var(--site-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.oa-contact-topics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.site-contact-topics {
+  margin-top: 24px;
+}
+
+/* About — section tabs */
+.oa-about-tabs-wrap {
+  position: sticky;
+  top: 60px;
+  z-index: 50;
+  background: #ffffff;
+  border-bottom: 1px solid var(--site-border);
+  padding: 12px 28px 0;
+  margin-bottom: 0;
+}
+
+.oa-about-tabs {
+  max-width: var(--site-max);
+  margin: 0 auto;
+}
+
+.oa-about-panel {
+  padding-top: 8px;
+}
+
+.oa-about-panel > .site-card,
+.oa-about-panel > .oa-demo-banner,
+.oa-about-panel > .oa-about-metrics {
+  margin-bottom: 16px;
+}
+
+.site-about {
+  padding-top: 24px;
+}
+
+/* About page — larger readable type */
+.site-about .site-card,
+.site-about .oa-demo-banner {
+  padding: 28px 32px;
+}
+
+.site-about .oa-team-expertise-card h3,
+.site-about .oa-contact-topic-card h3 {
+  font-size: 1.1rem;
+}
+
+.site-about .oa-team-expertise-card p,
+.site-about .oa-contact-topic-card p {
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+.site-about .oa-contact-topic-link {
+  font-size: 0.98rem;
+}
+
+.site-about .oa-team-scale {
+  font-size: 1.05rem;
+}
+
+.oa-about-tabs-wrap .qr-tab {
+  padding: 12px 18px;
+}
+
+.oa-about-tabs-wrap .qr-tab-label {
+  font-size: 1.05rem;
+}
+
+.oa-about-tabs-wrap .qr-tab-hint {
+  font-size: 0.9rem;
+}
+
+.oa-contact-topic-card {
+  padding: 18px;
+  background: var(--site-surface-2);
+  border: 1px solid var(--site-border);
+  border-radius: var(--site-radius-sm);
+}
+
+.oa-contact-topic-card h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--amex-navy);
+  margin-bottom: 6px;
+}
+
+.oa-contact-topic-card p {
+  font-size: 0.98rem;
+  color: var(--site-text-muted);
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.oa-contact-topic-link {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--amex-blue);
+  text-decoration: none;
+}
+
+.oa-contact-topic-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .oa-team-expertise-grid,
+  .oa-contact-topics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Final site typography layer; terminal and chart layouts do not use .oa-ui. */
+.oa-ui {
+  font-size: 18px;
+}
+
+.oa-ui .site-nav-link,
+.oa-ui .site-nav-cta {
+  font-size: 15px !important;
+}
+
+.oa-ui .site-nav-name {
+  font-size: 17px !important;
+}
+
+.oa-ui .site-section-title {
+  font-size: clamp(1.55rem, 3vw, 1.9rem) !important;
+}
+
+.oa-ui .oa-page-header-title {
+  font-size: clamp(2rem, 4vw, 2.65rem) !important;
+}
+
+.oa-ui .oa-page-header-lead,
+.oa-ui .site-section-lead {
+  font-size: 1.15rem !important;
+}
+
+.oa-ui .site-card p,
+.oa-ui .site-about-block p,
+.oa-ui .site-about .oa-about-story,
+.oa-ui .site-about .oa-about-mission,
+.oa-ui .site-docs-term-body,
+.oa-ui .oa-docs-real-world p,
+.oa-ui .site-footer-link,
+.oa-ui .site-footer-desc {
+  font-size: 1.08rem !important;
+}
+
+.oa-ui button,
+.oa-ui input,
+.oa-ui select {
+  font-size: 15px;
+}
+
+@media (max-width: 640px) {
+  .oa-ui {
+    font-size: 17px;
+  }
+}

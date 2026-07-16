@@ -1,22 +1,20 @@
 "use client";
 
-import SiteNav from "@/components/SiteNav";
+import SiteShell from "@/components/SiteShell";
+import SitePageHeader from "@/components/SitePageHeader";
 import ContactSection from "@/components/ContactSection";
-import SiteFooter from "@/components/SiteFooter";
-import FadeIn from "@/components/motion/FadeIn";
+import { Mail } from "lucide-react";
 
 export default function ContactPageContent() {
   return (
-    <div className="site-page">
-      <SiteNav />
-      <main className="site-about">
-        <FadeIn>
-          <h1 className="site-about-title">Contact Us</h1>
-          <p className="site-about-lead">Contact</p>
-        </FadeIn>
-      </main>
+    <SiteShell>
+      <SitePageHeader
+        badge="Get in touch"
+        title="Contact Us"
+        lead="Questions about investor growth, diversification, research, or portfolio goals."
+        icon={Mail}
+      />
       <ContactSection id="contact" />
-      <SiteFooter />
-    </div>
+    </SiteShell>
   );
 }

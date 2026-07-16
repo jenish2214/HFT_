@@ -2,7 +2,7 @@ import type { TickInfo, MarketSession } from "@/lib/marketTypes";
 import { isMarketOpen } from "@/lib/marketTypes";
 import Link from "next/link";
 import SymbolSelector from "@/components/SymbolSelector";
-import { PRODUCT_NAME, PRODUCT_TAGLINE } from "@/lib/orionAlpha";
+import { PRODUCT_NAME, PRODUCT_MOTTO, PRODUCT_TAGLINE } from "@/lib/orionAlpha";
 
 interface Props {
   symbol: string;
@@ -49,7 +49,7 @@ export default function TraderHeader({
             <div className="trader-brand-title">
               <Link href="/terminal" className="trader-brand-link">{PRODUCT_NAME}</Link>
             </div>
-            <div className="trader-brand-sub mono">{symbol} · {PRODUCT_TAGLINE}</div>
+            <div className="trader-brand-sub mono">{symbol} · {PRODUCT_MOTTO} · {PRODUCT_TAGLINE}</div>
           </div>
         </div>
         <SymbolSelector

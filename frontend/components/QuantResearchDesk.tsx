@@ -16,7 +16,7 @@ export function ResearchDeskBar({ data, primary }: { data: QuantResearchData; pr
 
   const kpis: KpiItem[] = [
     { label: "Last", value: risk?.latest_price != null ? `$${risk.latest_price.toFixed(2)}` : "—" },
-    { label: "QS Sharpe", value: data.quantstats?.sharpe != null ? String(data.quantstats.sharpe) : (risk?.sharpe != null ? String(risk.sharpe) : "—") },
+    { label: "Sharpe", value: data.quantstats?.sharpe != null ? String(data.quantstats.sharpe) : (risk?.sharpe != null ? String(risk.sharpe) : "—") },
     { label: "Ann vol", value: risk?.ann_vol_pct != null ? `${risk.ann_vol_pct}%` : "—" },
     { label: "Max DD", value: risk?.max_drawdown_pct != null ? `${risk.max_drawdown_pct}%` : "—", tone: "neg" },
     { label: "Alpha", value: capm?.alpha_ann_pct != null ? `${capm.alpha_ann_pct}%` : "—", tone: (capm?.alpha_ann_pct ?? 0) >= 0 ? "pos" : "neg" },

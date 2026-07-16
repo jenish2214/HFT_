@@ -1,66 +1,83 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useScroll, useSpring } from "framer-motion";
+import { Menu, Terminal, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { EASE_OUT } from "@/lib/siteMotion";
+import { useCallback, useEffect, useState } from "react";
+import { MAIN_NAV } from "@/lib/navConfig";
 import { PRODUCT_NAME } from "@/lib/orionAlpha";
-
-const NAV_ITEMS = [
-  { href: "/", label: "Home" },
-  { href: "/research", label: "Research" },
-  { href: "/docs", label: "Docs" },
-  { href: "/about", label: "About" },
-  { href: "/terminal", label: "Terminal" },
-  { href: "/chart", label: "Charts" },
-  { href: "/contact", label: "Contact Us" },
-];
 
 export default function SiteNav() {
   const path = usePathname();
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 28, restDelta: 0.001 });
+  const [open, setOpen] = useState(false);
 
-  const isActive = (href: string) => {
-    if (href === "/") return path === "/";
-    return path === href || path.startsWith(`${href}/`) || path.startsWith(href);
-  };
+  const isActive = useCallback(
+    (href: string) => {
+      if (href === "/") return path === "/";
+      return path === href || path.startsWith(`${href}/`);
+    },
+    [path],
+  );
+
+  useEffect(() => {
+    setOpen(false);
+  }, [path]);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   return (
-    <motion.header
-      className="site-nav-wrap"
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, ease: EASE_OUT }}
-    >
-      <motion.div className="site-scroll-progress" style={{ scaleX }} />
+    <header className="site-nav-wrap">
       <div className="site-nav-bar">
-        <Link href="/" className="site-nav-brand" prefetch>
+        <Link href="/" className="site-nav-brand" prefetch onClick={() => setOpen(false)}>
           <span className="site-nav-logo">OA</span>
           <span className="site-nav-name">{PRODUCT_NAME}</span>
         </Link>
 
-        <nav className="site-nav-menu" aria-label="Main">
-          {NAV_ITEMS.map(({ href, label }) => (
+        <nav className={`site-nav-menu${open ? " site-nav-menu-open" : ""}`} aria-label="Main">
+          {MAIN_NAV.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
               prefetch
               className={`site-nav-link${isActive(href) ? " site-nav-active" : ""}`}
+              onClick={() => setOpen(false)}
             >
               {label}
             </Link>
           ))}
+          <Link
+            href="/terminal"
+            className="site-nav-cta site-nav-mobile-cta"
+            prefetch
+            onClick={() => setOpen(false)}
+          >
+            <Terminal size={16} aria-hidden />
+            Open Terminal
+          </Link>
         </nav>
 
         <div className="site-nav-actions">
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-            <Link href="/terminal" className="site-nav-cta" prefetch>
-              Open Terminal
-            </Link>
-          </motion.div>
+          <Link href="/terminal" className="site-nav-cta" prefetch>
+            <Terminal size={16} aria-hidden />
+            Open Terminal
+          </Link>
         </div>
+
+        <button
+          type="button"
+          className="site-nav-toggle"
+          aria-label={open ? "Close menu" : "Open menu"}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? <X size={20} /> : <Menu size={20} />}
+        </button>
       </div>
-    </motion.header>
+    </header>
   );
 }

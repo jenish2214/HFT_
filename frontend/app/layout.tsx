@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import "./site-premium.css";
+import "./ui-system.css";
+import "./quant-geometry.css";
+import "./terminal-theme.css";
 import DevConsoleFilter from "@/components/DevConsoleFilter";
 import SitePageTransition from "@/components/SitePageTransition";
 
@@ -14,7 +17,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: "Orion Alpha — Market Research Terminal",
-  description: "Orion Alpha — professional market research terminal for equities, crypto, commodities, FX, and fundamentals",
+  description: "Orion Alpha — Research every investor before investment. Find true value, not speculation.",
   icons: { icon: "/favicon.svg" },
 };
 
@@ -34,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body>
+      <body className={poppins.className}>
         <DevConsoleFilter />
         <SitePageTransition>{children}</SitePageTransition>
       </body>

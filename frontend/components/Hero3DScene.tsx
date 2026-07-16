@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-const ORBIT_LABELS = ["Equities", "Crypto", "FX", "Rates", "Charts", "Research"];
+const ORBIT_LABELS = ["Value", "Momentum", "Risk", "Macro", "Factors", "Alpha"];
 
 export default function Hero3DScene() {
   const tiltRef = useRef<HTMLDivElement>(null);
@@ -40,7 +40,7 @@ export default function Hero3DScene() {
             <div className="hero-3d-ring hero-3d-ring-b" />
             <div className="hero-3d-core">
               <span className="hero-3d-logo">OA</span>
-              <span className="hero-3d-motto">Deep Research</span>
+              <span className="hero-3d-motto">True Value</span>
             </div>
             {ORBIT_LABELS.map((label, i) => (
               <div

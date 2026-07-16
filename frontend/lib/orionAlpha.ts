@@ -1,8 +1,10 @@
 /** Orion Alpha — product identity & terminal feature catalog */
 
 export const PRODUCT_NAME = "Orion Alpha";
-export const PRODUCT_TAGLINE = "Markets Research";
+export const PRODUCT_TAGLINE = "True Value · Not Speculation";
 export const PRODUCT_MOTTO = "Research";
+export const PRODUCT_MOTTO_LONG =
+  "Research every investor before investment — find true value, not speculation. Build returns wisely.";
 export const PRODUCT_VERSION = "1.0";
 export const COMPANY_NAME = "BSj infotech";
 export const SUPPORT_EMAIL = "bsjinfotech1@gmail.com";
