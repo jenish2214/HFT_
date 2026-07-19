@@ -1,11 +1,6 @@
-import DocsPageContent from "@/components/DocsPageContent";
-import { PRODUCT_NAME } from "@/lib/orionAlpha";
+import { permanentRedirect } from "next/navigation";
 
-export const metadata = {
-  title: `Docs — ${PRODUCT_NAME}`,
-  description: `Market definitions and glossary for ${PRODUCT_NAME}.`,
-};
-
+/** Docs page permanently hidden — redirect to home. */
 export default function DocsPage() {
-  return <DocsPageContent />;
+  permanentRedirect("/");
 }

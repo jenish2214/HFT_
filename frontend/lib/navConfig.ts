@@ -1,7 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
-  BookOpen,
   Home,
   Info,
   LineChart,
@@ -22,7 +21,6 @@ export const MAIN_NAV: NavItem[] = [
   { href: "/research", label: "Research", icon: Microscope, short: "Research" },
   { href: "/terminal", label: "Terminal", icon: Terminal, short: "Desk" },
   { href: "/chart", label: "Charts", icon: LineChart, short: "Charts" },
-  { href: "/docs", label: "Docs", icon: BookOpen, short: "Docs" },
   { href: "/about", label: "About", icon: Info, short: "About" },
   { href: "/contact", label: "Contact", icon: Mail, short: "Contact" },
 ];

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import DataLoadingBar from "@/components/DataLoadingBar";
 import DataNotFound from "@/components/DataNotFound";
@@ -264,9 +263,7 @@ export default function QuantResearchDashboard() {
           <div className="qr-hero-pro-copy">
             <p className="site-hero-badge">Research desk · {PRODUCT_NAME}</p>
             <h1 className="qr-hero-pro-title">Quantitative research</h1>
-            <p className="qr-hero-pro-lead">
-              Enter a symbol for performance metrics, factor scores, momentum analysis, and risk tables.
-            </p>
+            
           </div>
           <div className="qr-hero-pro-search oa-card">
             <SymbolSearchInput
@@ -279,10 +276,7 @@ export default function QuantResearchDashboard() {
               placeholder="Symbol — AAPL, SPY, BTC-USD…"
               className="qr-symbol-search"
               ariaLabel="Primary research symbol"
-            />
-            <p className="qr-hero-search-hint">
-              Press <strong>GO</strong> to load. <Link href="/docs" className="qr-hero-docs-link">Definitions</Link>
-            </p>
+            />  
           </div>
         </div>
         {quantData && (

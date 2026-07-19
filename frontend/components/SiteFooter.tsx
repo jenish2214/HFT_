@@ -4,7 +4,6 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
-  BookOpen,
   Info,
   Mail,
   Microscope,
@@ -16,7 +15,6 @@ const PLATFORM_LINKS = [
   { label: "Terminal", href: "/terminal", icon: Terminal },
   { label: "Research", href: "/research", icon: Microscope },
   { label: "Charts", href: "/chart", icon: BarChart3 },
-  { label: "Docs", href: "/docs", icon: BookOpen },
 ];
 
 const COMPANY_LINKS = [
@@ -25,7 +23,7 @@ const COMPANY_LINKS = [
 ];
 
 const RESOURCE_LINKS = [
-  { label: "Documentation", href: "/docs", icon: BookOpen },
+  { label: "Research", href: "/research", icon: Microscope },
   { label: "Contact", href: "/contact", icon: Mail },
 ];
 
@@ -102,7 +100,7 @@ export default function SiteFooter() {
               by <strong>{displayCompany}</strong>
             </span>
           </div>
-          <span className="site-footer-version">v{PRODUCT_VERSION}</span>
+          
         </div>
       </div>
     </footer>

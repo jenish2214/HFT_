@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Terminal, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { MAIN_NAV } from "@/lib/navConfig";
@@ -50,23 +50,7 @@ export default function SiteNav() {
               {label}
             </Link>
           ))}
-          <Link
-            href="/terminal"
-            className="site-nav-cta site-nav-mobile-cta"
-            prefetch
-            onClick={() => setOpen(false)}
-          >
-            <Terminal size={16} aria-hidden />
-            Open Terminal
-          </Link>
         </nav>
-
-        <div className="site-nav-actions">
-          <Link href="/terminal" className="site-nav-cta" prefetch>
-            <Terminal size={16} aria-hidden />
-            Open Terminal
-          </Link>
-        </div>
 
         <button
           type="button"
