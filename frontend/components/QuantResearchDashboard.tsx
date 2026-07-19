@@ -9,6 +9,7 @@ import QuantResearchCharts from "@/components/QuantResearchCharts";
 import QuantRiskTactics from "@/components/QuantRiskTactics";
 import { ResearchDeskBar } from "@/components/QuantResearchDesk";
 import QuantCompanyProfile from "@/components/QuantCompanyProfile";
+import QuantSymbolCards from "@/components/QuantSymbolCards";
 import QuantEducationLab from "@/components/QuantEducationLab";
 import QuantStatsPanel from "@/components/QuantStatsPanel";
 import type { QuantResearchData } from "@/lib/quantResearchTypes";
@@ -356,6 +357,11 @@ export default function QuantResearchDashboard() {
 
           <ResearchTabPanel id="overview" active={activeTab}>
             <QuantCompanyProfile data={quantData} primary={primary} />
+            <QuantSymbolCards
+              data={quantData}
+              primary={primary}
+              onSelect={setDraftSymbol}
+            />
           </ResearchTabPanel>
 
           <ResearchTabPanel id="performance" active={activeTab}>

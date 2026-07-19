@@ -121,10 +121,8 @@ export default function QuantCompanyProfile({ data, primary }: Props) {
   const profile = data.primary_profile ?? data.company_profiles?.[primary];
   const profiles = data.company_profiles ?? {};
   const others = data.tickers.filter((t) => t !== primary && profiles[t]?.data_found !== false);
-
-  if (!profile && Object.keys(profiles).length === 0) return null;
-
   const riskPrice = data.risk_metrics.find((r) => r.symbol === primary)?.latest_price;
+  const hasProfile = !!(profile && profile.data_found !== false);
 
   return (
     <section className="site-section site-section-wide site-section-muted qr-co-section">
@@ -133,8 +131,8 @@ export default function QuantCompanyProfile({ data, primary }: Props) {
         Fundamentals and business profile for {primary} and universe peers — sector, valuation, and financials.
       </p>
 
-      {profile && profile.data_found !== false ? (
-        <ProfileBlock profile={profile} primary={primary} riskPrice={riskPrice} />
+      {hasProfile ? (
+        <ProfileBlock profile={profile!} primary={primary} riskPrice={riskPrice} />
       ) : (
         <p className="qr-co-unavailable">Company profile unavailable for {primary}. Try again later.</p>
       )}

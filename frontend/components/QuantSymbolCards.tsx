@@ -65,7 +65,7 @@ export default function QuantSymbolCards({ data, primary, onSelect }: Props) {
   }, [rows]);
 
   return (
-    <section className="site-section site-section-wide">
+    <section className="site-section site-section-wide qr-section-card">
       <h2 className="site-section-title">Universe overview</h2>
       <p className="site-section-lead">
         Category-wise comparison across the research universe — click a row to select a symbol, then press GO.
