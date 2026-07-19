@@ -1272,7 +1272,6 @@ body:has(.fof-shell) {
 .fof-shell .qr-page .qr-empty-chip,
 .fof-shell .qr-page .qr-empty-icon,
 .fof-shell .qr-page .qr-desk-code,
-.fof-shell .qr-page .qr-chart-code,
 .fof-shell .qr-page .qr-qs-badge,
 .fof-shell .qr-page .site-prob-value,
 .fof-shell .qr-page .qr-edu-regime,
@@ -3558,7 +3557,298 @@ body:has(.fof-shell) {
   stroke: currentColor !important;
 }
 
-.fof-shell .sym-search-go:hover:not(:disabled),
-.fof-shell .qr-page .sym-search-go:hover:not(:disabled) {
-  color: #0b1220 !important;
+.fof-shell .oa-load-bar {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+  color: #fff !important;
+}
+
+.fof-shell .oa-load-bar-slow {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-bottom-color: rgba(245, 158, 11, 0.35) !important;
+  color: #fcd34d !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Analysis tab — force dark panels + readable text (final)
+   ═══════════════════════════════════════════════════════════ */
+.fof-shell .qr-page .qr-edu-panel,
+.fof-shell .qr-page .qr-edu-momentum,
+.fof-shell .qr-page .qr-edu-buy-hero,
+.fof-shell .qr-page .qr-edu-zone,
+.fof-shell .qr-page .qr-edu-zone-highlight,
+.fof-shell .qr-page .qr-edu-scenarios,
+.fof-shell .qr-page .qr-edu-signals,
+.fof-shell .qr-page .qr-edu-models,
+.fof-shell .qr-page .qr-edu-band,
+.fof-shell .qr-page .qr-edu-disclaimer,
+.fof-shell .qr-page .qr-pred-panel,
+.fof-shell .qr-page .qr-pred-outlook,
+.fof-shell .qr-page .qr-pred-scenarios,
+.fof-shell .qr-page .qr-pred-signals,
+.fof-shell .qr-page .qr-pred-models,
+.fof-shell .qr-page .qr-pred-model-card,
+.fof-shell .qr-page .qr-pred-band,
+.fof-shell .qr-page .qr-pred-band-cell,
+.fof-shell .qr-page .qr-pred-scenario,
+.fof-shell .qr-page .qr-pred-signal-item,
+.fof-shell .qr-page .qr-charts-section,
+.fof-shell .qr-page .qr-chart-card,
+.fof-shell .qr-page .qr-chart-body,
+.fof-shell .qr-page .qr-svg,
+.fof-shell .qr-page .qr-svg-frame,
+.fof-shell .qr-page .qr-hover-info,
+.fof-shell .qr-page .qr-hover-info-empty,
+.fof-shell .qr-page .qr-chart-tip,
+.fof-shell .qr-page .qr-analytics-head,
+.fof-shell .qr-page .qr-chart-desk-head,
+.fof-shell .qr-page .qr-chart-kpi,
+.fof-shell .qr-page .qr-chart-tags span,
+.fof-shell .qr-page .qr-pattern-row,
+.fof-shell .qr-page .qr-mc-simple,
+.fof-shell .qr-page .qr-heatmap,
+.fof-shell .qr-page .qr-heatmap-cell,
+.fof-shell .qr-page .qr-heatmap-row-label {
+  background: rgba(255, 255, 255, 0.05) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.fof-shell .qr-page .qr-edu-buy-price,
+.fof-shell .qr-page .qr-edu-zone-price,
+.fof-shell .qr-page .qr-edu-block-title,
+.fof-shell .qr-page .qr-edu-title,
+.fof-shell .qr-page .qr-edu-regime-label,
+.fof-shell .qr-page .qr-pred-scenario-label,
+.fof-shell .qr-page .qr-pred-scenario-pct,
+.fof-shell .qr-page .qr-pred-signal-pct,
+.fof-shell .qr-page .qr-pred-band-cell strong,
+.fof-shell .qr-page .qr-pred-block-title,
+.fof-shell .qr-page .qr-pred-model-name,
+.fof-shell .qr-page .qr-chart-title,
+.fof-shell .qr-page .qr-hbar-label,
+.fof-shell .qr-page .qr-hbar-val,
+.fof-shell .qr-page .qr-pattern-label,
+.fof-shell .qr-page .qr-pattern-pct,
+.fof-shell .qr-page .qr-legend-item,
+.fof-shell .qr-page .qr-legend-primary,
+.fof-shell .qr-page .qr-chart-kpi-val,
+.fof-shell .qr-page .qr-heatmap-cell,
+.fof-shell .qr-page .qr-end-label {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+.fof-shell .qr-page .qr-edu-buy-label,
+.fof-shell .qr-page .qr-edu-buy-vs,
+.fof-shell .qr-page .qr-edu-lesson,
+.fof-shell .qr-page .qr-edu-zone-label,
+.fof-shell .qr-page .qr-edu-zone-role,
+.fof-shell .qr-page .qr-edu-lead,
+.fof-shell .qr-page .qr-edu-eyebrow,
+.fof-shell .qr-page .qr-edu-regime-meta,
+.fof-shell .qr-page .qr-edu-block-note,
+.fof-shell .qr-page .qr-edu-disclaimer p,
+.fof-shell .qr-page .qr-pred-scenario-hint,
+.fof-shell .qr-page .qr-pred-band-label,
+.fof-shell .qr-page .qr-pred-model-role,
+.fof-shell .qr-page .qr-pred-model-meta,
+.fof-shell .qr-page .qr-pred-lead,
+.fof-shell .qr-page .qr-chart-sub,
+.fof-shell .qr-page .qr-chart-kpi-label,
+.fof-shell .qr-page .qr-chart-footnote,
+.fof-shell .qr-page .qr-chart-legend-inline,
+.fof-shell .qr-page .qr-pred-signal-row span:first-child {
+  color: rgba(255, 255, 255, 0.68) !important;
+}
+
+.fof-shell .qr-page .qr-edu-regime-strong {
+  background: rgba(34, 197, 94, 0.16) !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+  color: #86efac !important;
+}
+.fof-shell .qr-page .qr-edu-regime-moderate {
+  background: rgba(245, 158, 11, 0.16) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  color: #fcd34d !important;
+}
+.fof-shell .qr-page .qr-edu-regime-weak {
+  background: rgba(239, 68, 68, 0.16) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #fca5a5 !important;
+}
+
+.fof-shell .qr-page .qr-edu-zone-highlight {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+}
+
+.fof-shell .qr-page .qr-edu-disclaimer,
+.fof-shell .qr-page .qr-edu-disclaimer-badge {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  color: #fcd34d !important;
+}
+
+.fof-shell .qr-page .qr-pred-scenario-track,
+.fof-shell .qr-page .qr-pred-signal-track,
+.fof-shell .qr-page .qr-hbar-track,
+.fof-shell .qr-page .qr-pattern-track {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.fof-shell .qr-page .qr-pred-signal-fill {
+  background: #ffffff !important;
+}
+
+.fof-shell .qr-page .qr-grid-line {
+  stroke: rgba(255, 255, 255, 0.12) !important;
+}
+
+.fof-shell .qr-page .qr-axis-label,
+.fof-shell .qr-page .qr-axis-label-bold {
+  fill: rgba(255, 255, 255, 0.55) !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+.fof-shell .qr-page .qr-hover-info,
+.fof-shell .qr-page .qr-hover-info-empty,
+.fof-shell .qr-page .qr-chart-tip {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
+}
+
+.fof-shell .qr-page .qr-heatmap-head .qr-heatmap-cell,
+.fof-shell .qr-page .qr-heatmap-row-label {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.fof-shell .qr-page .qr-pred-band-now {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+.fof-shell .qr-page .qr-chart-code,
+.fof-shell .qr-page .qr-analytics-code {
+  background: rgba(11, 18, 32, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.fof-shell .qr-page .qr-chart-desk-head {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+.fof-shell .qr-page .qr-chart-tags span {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.fof-shell .qr-page .qr-svg-frame,
+.fof-shell .qr-page .qr-svg {
+  background: #0f172a !important;
+  background-image: none !important;
+}
+
+.fof-shell .qr-page .qr-pred-stack-python {
+  background: rgba(59, 130, 246, 0.25) !important;
+  color: #93c5fd !important;
+}
+
+.fof-shell .qr-page .qr-pred-stack-cpp {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+/* Analysis section — kill remaining light chart chrome */
+.fof-shell .qr-analysis {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fof-shell .qr-analysis .qr-chart-card,
+.fof-shell .qr-analysis .qr-chart-desk-head,
+.fof-shell .qr-analysis .qr-chart-body,
+.fof-shell .qr-analysis .qr-chart-kpi-strip,
+.fof-shell .qr-analysis .qr-svg-frame,
+.fof-shell .qr-analysis .qr-svg,
+.fof-shell .qr-analysis .qr-hover-slot,
+.fof-shell .qr-analysis .qr-hover-info,
+.fof-shell .qr-analysis .qr-hover-info-empty,
+.fof-shell .qr-analysis .qr-charts-section,
+.fof-shell .qr-analysis .qr-edu-panel,
+.fof-shell .qr-analysis .qr-edu-momentum,
+.fof-shell .qr-analysis .qr-edu-buy-hero,
+.fof-shell .qr-analysis .qr-edu-scenarios,
+.fof-shell .qr-analysis .qr-edu-signals,
+.fof-shell .qr-analysis .qr-edu-band,
+.fof-shell .qr-analysis .qr-edu-zone,
+.fof-shell .qr-analysis .qr-chart-footnote {
+  background: #121a2b !important;
+  background-image: none !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.fof-shell .qr-analysis .qr-chart-desk-head {
+  background: #151d30 !important;
+}
+
+.fof-shell .qr-analysis .qr-svg-frame,
+.fof-shell .qr-analysis .qr-svg {
+  background: #0b1220 !important;
+}
+
+.fof-shell .qr-analysis .qr-chart-code,
+.fof-shell .qr-analysis .qr-analytics-code {
+  background: #0b1220 !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+}
+
+.fof-shell .qr-analysis .qr-chart-tags span {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+.fof-shell .qr-analysis .qr-chart-title,
+.fof-shell .qr-analysis .qr-chart-kpi-val,
+.fof-shell .qr-analysis .qr-edu-buy-price,
+.fof-shell .qr-analysis .qr-edu-block-title,
+.fof-shell .qr-analysis h2,
+.fof-shell .qr-analysis h3 {
+  color: #fff !important;
+}
+
+.fof-shell .qr-analysis .qr-chart-sub,
+.fof-shell .qr-analysis .qr-chart-kpi-label,
+.fof-shell .qr-analysis .qr-chart-footnote,
+.fof-shell .qr-analysis .site-section-lead,
+.fof-shell .qr-analysis .qr-edu-lesson,
+.fof-shell .qr-analysis .qr-edu-buy-label,
+.fof-shell .qr-analysis .qr-edu-buy-vs {
+  color: rgba(255, 255, 255, 0.68) !important;
+}
+
+.fof-shell .qr-analysis .qr-axis-label,
+.fof-shell .qr-analysis .qr-axis-label-bold {
+  fill: rgba(255, 255, 255, 0.55) !important;
+}
+
+.fof-shell .qr-analysis .qr-grid-line {
+  stroke: rgba(255, 255, 255, 0.12) !important;
+}
+
+.fof-shell .qr-tabs-wrap {
+  background: #0b1220 !important;
 }

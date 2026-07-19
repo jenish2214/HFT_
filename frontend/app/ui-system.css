@@ -914,7 +914,7 @@
   position: sticky;
   top: 60px;
   z-index: 50;
-  background: rgba(248, 250, 252, 0.92);
+  background: var(--site-surface);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--site-border);
   padding: 10px 12px 0;

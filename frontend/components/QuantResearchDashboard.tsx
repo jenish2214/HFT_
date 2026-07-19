@@ -308,7 +308,7 @@ export default function QuantResearchDashboard() {
             title={`Loading ${primary || draftSymbol}`}
             message={
               fetchSlow
-                ? "Still loading — first request on Render can be slow…"
+                ? "Still loading — request on Render can be slow…"
                 : `Fetching ${primary || draftSymbol}…`
             }
             skeleton="desk"
@@ -349,8 +349,10 @@ export default function QuantResearchDashboard() {
           </ResearchTabPanel>
 
           <ResearchTabPanel id="analysis" active={activeTab}>
-            <QuantEducationLab data={quantData} primary={primary} />
-            <QuantResearchCharts data={quantData} primary={primary} />
+            <div className="qr-analysis">
+              <QuantEducationLab data={quantData} primary={primary} />
+              <QuantResearchCharts data={quantData} primary={primary} />
+            </div>
           </ResearchTabPanel>
 
           <ResearchTabPanel id="risk" active={activeTab}>
