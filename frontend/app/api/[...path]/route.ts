@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  ALLOWED_API_PATHS,
   isAllowedApiPath,
   sanitizeSearchParams,
   validateSymbol,
@@ -14,8 +13,13 @@ const SECURITY_HEADERS = {
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
   "Referrer-Policy": "strict-origin-when-cross-origin",
-  "Cache-Control": "no-store",
 };
+
+/** Short TTL cache for research GETs — faster repeat loads on Render. */
+const RESEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
+const researchCache = new Map<string, { body: string; status: number; contentType: string; ts: number }>();
+
+const CACHEABLE_PREFIXES = ["research/quant", "research/profile", "company/report"];
 
 function resolveBackend(): string {
   const raw = (process.env.API_URL || "http://127.0.0.1:8000").trim();
@@ -28,7 +32,32 @@ function resolveBackend(): string {
 const BACKEND = resolveBackend();
 
 function reject(message: string, status: number) {
-  return NextResponse.json({ status: "error", message }, { status, headers: SECURITY_HEADERS });
+  return NextResponse.json(
+    { status: "error", message },
+    { status, headers: { ...SECURITY_HEADERS, "Cache-Control": "no-store" } },
+  );
+}
+
+function isCacheableGet(path: string) {
+  return CACHEABLE_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`));
+}
+
+function getCached(key: string) {
+  const hit = researchCache.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.ts > RESEARCH_CACHE_TTL_MS) {
+    researchCache.delete(key);
+    return null;
+  }
+  return hit;
+}
+
+function setCached(key: string, body: string, status: number, contentType: string) {
+  if (researchCache.size > 80) {
+    const oldest = researchCache.keys().next().value;
+    if (oldest) researchCache.delete(oldest);
+  }
+  researchCache.set(key, { body, status, contentType, ts: Date.now() });
 }
 
 async function proxyRequest(req: NextRequest, pathSegments: string[]) {
@@ -41,12 +70,28 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
   const safeParams = sanitizeSearchParams(req.nextUrl.searchParams);
   const query = safeParams.toString();
   const target = `${BACKEND}/${path}${query ? `?${query}` : ""}`;
+  const cacheKey = `${req.method}:${path}?${query}`;
+
+  if (req.method === "GET" && isCacheableGet(path)) {
+    const hit = getCached(cacheKey);
+    if (hit) {
+      return new NextResponse(hit.body, {
+        status: hit.status,
+        headers: {
+          "Content-Type": hit.contentType,
+          ...SECURITY_HEADERS,
+          "Cache-Control": "private, max-age=60",
+          "X-Research-Cache": "HIT",
+        },
+      });
+    }
+  }
 
   try {
     const init: RequestInit = {
       method: req.method,
       headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(120_000),
+      signal: AbortSignal.timeout(90_000),
       cache: "no-store",
     };
 
@@ -81,9 +126,18 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
     const contentType = res.headers.get("content-type") || "application/json";
     const resBody = await res.text();
 
+    if (req.method === "GET" && isCacheableGet(path) && res.ok) {
+      setCached(cacheKey, resBody, res.status, contentType);
+    }
+
     return new NextResponse(resBody, {
       status: res.status,
-      headers: { "Content-Type": contentType, ...SECURITY_HEADERS },
+      headers: {
+        "Content-Type": contentType,
+        ...SECURITY_HEADERS,
+        "Cache-Control": isCacheableGet(path) ? "private, max-age=60" : "no-store",
+        "X-Research-Cache": "MISS",
+      },
     });
   } catch {
     return NextResponse.json(
@@ -91,7 +145,7 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
         status: "error",
         message: "Market API unavailable — backend not reachable.",
       },
-      { status: 503, headers: SECURITY_HEADERS },
+      { status: 503, headers: { ...SECURITY_HEADERS, "Cache-Control": "no-store" } },
     );
   }
 }

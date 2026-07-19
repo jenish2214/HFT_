@@ -841,27 +841,33 @@
 
 /* ── Research desk pro ── */
 .qr-page-pro {
-  padding-bottom: 48px;
+  --qr-x: clamp(16px, 3.5vw, 28px);
+  --qr-gap: 16px;
+  --qr-pad: 20px;
+  --qr-max: 1120px;
+  padding-bottom: 64px;
 }
 
 .qr-hero-pro {
-  padding: 36px 28px 24px;
-  max-width: var(--site-max);
+  padding: 24px 0 18px;
+  max-width: var(--qr-max);
+  width: min(var(--qr-max), calc(100% - (var(--qr-x) * 2)));
   margin: 0 auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .qr-hero-pro-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 28px;
-  align-items: start;
+  display: contents;
 }
 
 .qr-hero-pro-title {
   font-size: clamp(1.75rem, 3.5vw, 2.25rem);
   font-weight: 700;
   letter-spacing: -0.03em;
-  margin: 8px 0 10px;
+  margin: 8px 0 0;
 }
 
 .qr-hero-pro-lead {
@@ -872,7 +878,7 @@
 }
 
 .qr-hero-pro-search {
-  padding: 22px;
+  padding: var(--qr-pad);
   background: var(--site-surface);
   border: 1px solid var(--site-border);
   border-top: 3px solid var(--amex-blue);
@@ -880,16 +886,28 @@
 }
 
 .qr-meta-pro {
-  margin-top: 16px;
+  margin-top: 14px;
   font-size: 0.78rem;
   color: var(--site-text-muted);
 }
 
 .qr-empty-pro {
-  max-width: 520px;
-  margin: 0 auto 32px;
+  max-width: var(--qr-max);
+  width: min(var(--qr-max), calc(100% - (var(--qr-x) * 2)));
+  margin: 8px auto 24px;
   text-align: center;
-  padding: 32px 24px;
+  padding: 28px var(--qr-pad);
+  box-sizing: border-box;
+}
+
+.qr-content-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qr-gap);
+  max-width: var(--qr-max);
+  width: min(var(--qr-max), calc(100% - (var(--qr-x) * 2)));
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .qr-tabs-wrap {
@@ -899,15 +917,16 @@
   background: rgba(248, 250, 252, 0.92);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--site-border);
-  padding: 12px 28px 0;
-  margin-bottom: 8px;
+  padding: 10px 12px 0;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .qr-tabs {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   overflow-x: auto;
-  padding-bottom: 12px;
+  padding-bottom: 10px;
 }
 
 .qr-tab {
@@ -916,7 +935,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-  padding: 10px 16px;
+  padding: 8px 14px;
   font-family: inherit;
   border: 1px solid transparent;
   border-radius: var(--site-radius-sm);
@@ -954,10 +973,14 @@
 .qr-tabs-symbol {
   font-size: 0.78rem;
   color: var(--site-text-muted);
-  padding-bottom: 8px;
+  padding: 0 2px 10px;
+  margin: 0;
 }
 
 .qr-tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qr-gap);
   animation: oa-load-fade 0.25s ease;
 }
 
@@ -965,21 +988,40 @@
   background: var(--site-surface);
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-lg);
-  margin-left: auto;
-  margin-right: auto;
-  max-width: var(--site-max);
-  padding: 24px 28px !important;
+  margin: 0;
+  max-width: none;
+  width: 100%;
+  padding: var(--qr-pad) !important;
   box-shadow: var(--site-card-glow);
+  box-sizing: border-box;
 }
 
 .qr-page-pro .qr-desk-bar {
   border-bottom: 1px solid var(--site-border);
-  margin-bottom: 0;
+  margin: 0;
+  max-width: none;
+  width: 100%;
+  padding: var(--qr-pad);
+  box-sizing: border-box;
 }
 
 .qr-page-pro .site-section {
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding: 0;
+  margin: 0;
+  max-width: none;
+  width: 100%;
+}
+
+.qr-page-pro .site-section.qr-section-card {
+  padding: var(--qr-pad) !important;
+}
+
+.qr-loading-gate {
+  max-width: var(--qr-max);
+  width: min(var(--qr-max), calc(100% - (var(--qr-x) * 2)));
+  margin: 0 auto;
+  padding: 8px 0 24px;
+  box-sizing: border-box;
 }
 
 @media (max-width: 960px) {
@@ -995,8 +1037,9 @@
     grid-template-columns: 1fr;
   }
 
-  .qr-hero-pro-inner {
-    grid-template-columns: 1fr;
+  .qr-page-pro {
+    --qr-pad: 16px;
+    --qr-gap: 14px;
   }
 }
 
@@ -1005,14 +1048,18 @@
     grid-template-columns: 1fr;
   }
 
+  .qr-page-pro {
+    --qr-x: 14px;
+    --qr-pad: 14px;
+  }
+
   .qr-tabs-wrap {
-    padding-left: 18px;
-    padding-right: 18px;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   .qr-section-card {
-    padding-left: 18px !important;
-    padding-right: 18px !important;
+    padding: var(--qr-pad) !important;
   }
 }
 

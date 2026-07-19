@@ -1215,6 +1215,779 @@ body:has(.fof-shell) {
   background: rgba(11, 18, 32, 0.65) !important;
 }
 
+/* Research — kill leftover light panels that hide white text */
+.fof-shell .qr-page .qr-svg,
+.fof-shell .qr-page .qr-chart-card,
+.fof-shell .qr-page .qr-stock-card,
+.fof-shell .qr-page .qr-co-card,
+.fof-shell .qr-page .qr-co-peer-card,
+.fof-shell .qr-page .qr-section-card,
+.fof-shell .qr-page .qr-risk-card,
+.fof-shell .qr-page .qr-desk-bar,
+.fof-shell .qr-page .qr-desk-kpi,
+.fof-shell .qr-page .qr-empty-state,
+.fof-shell .qr-page .qr-empty-pro,
+.fof-shell .qr-page .qr-fallback,
+.fof-shell .qr-page .qr-fallback-card,
+.fof-shell .qr-page .qr-table-wrap,
+.fof-shell .qr-page .qr-charts-section,
+.fof-shell .qr-page .qr-engine-card,
+.fof-shell .qr-page .qr-pred-panel,
+.fof-shell .qr-page .qr-pred-outlook,
+.fof-shell .qr-page .qr-pred-card,
+.fof-shell .qr-page .qr-edu-momentum,
+.fof-shell .qr-page .qr-edu-buy-hero,
+.fof-shell .qr-page .qr-edu-zone,
+.fof-shell .qr-page .qr-edu-card,
+.fof-shell .qr-page .qr-qs-panel,
+.fof-shell .qr-page .qr-qs-cell,
+.fof-shell .qr-page .qr-qs-chart-card,
+.fof-shell .qr-page .qr-qs-mc-card,
+.fof-shell .qr-page .qr-qs-group-card,
+.fof-shell .qr-page .qr-qs-heat-wrap,
+.fof-shell .qr-page .qr-hover-info,
+.fof-shell .qr-page .qr-heatmap-wrap,
+.fof-shell .qr-page .site-prob-card,
+.fof-shell .qr-page .oa-card,
+.fof-shell .qr-page .qr-hero-pro-search,
+.fof-shell .qr-page .qr-loading-gate,
+.fof-shell .qr-page .oa-loading-full,
+.fof-shell .qr-page .oa-loading-panel,
+.fof-shell .qr-page .desk-full-loading {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: var(--fof-line) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.fof-shell .qr-page .qr-svg {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+}
+
+.fof-shell .qr-page .qr-stock-foot,
+.fof-shell .qr-page .qr-stock-pin,
+.fof-shell .qr-page .qr-co-class-badge,
+.fof-shell .qr-page .qr-co-primary-badge,
+.fof-shell .qr-page .qr-co-key-chip,
+.fof-shell .qr-page .qr-empty-chip,
+.fof-shell .qr-page .qr-empty-icon,
+.fof-shell .qr-page .qr-desk-code,
+.fof-shell .qr-page .qr-chart-code,
+.fof-shell .qr-page .qr-qs-badge,
+.fof-shell .qr-page .site-prob-value,
+.fof-shell .qr-page .qr-edu-regime,
+.fof-shell .qr-page .qr-pred-bull,
+.fof-shell .qr-page .qr-pred-bear,
+.fof-shell .qr-page .qr-pred-neutral,
+.fof-shell .qr-page .qr-qs-mc-card.is-bust,
+.fof-shell .qr-page .qr-qs-mc-card.is-goal,
+.fof-shell .qr-page .qr-heatmap-head .qr-heatmap-cell,
+.fof-shell .qr-page .qr-heatmap-row-label,
+.fof-shell .qr-page .qr-hover-info-empty,
+.fof-shell .qr-page .qr-corr-head,
+.fof-shell .qr-page .qr-row-primary,
+.fof-shell .qr-page .qr-table th,
+.fof-shell .qr-page .qr-qs-heat th,
+.fof-shell .qr-page .qr-qs-heat-year {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--fof-line) !important;
+  color: #fff !important;
+}
+
+/* Heatmap cells keep translucent fills on dark — keep light text */
+.fof-shell .qr-page .qr-qs-heat-cell,
+.fof-shell .qr-page .qr-corr-cell,
+.fof-shell .qr-page .qr-heatmap-cell {
+  color: #fff !important;
+}
+
+.fof-shell .qr-page .qr-qs-heat-cell.is-empty {
+  color: var(--fof-muted) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.fof-shell .qr-page .qr-edu-regime-strong {
+  background: rgba(34, 197, 94, 0.15) !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+  color: #86efac !important;
+}
+
+.fof-shell .qr-page .qr-edu-regime-moderate {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  color: #fcd34d !important;
+}
+
+.fof-shell .qr-page .qr-edu-regime-weak {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #fca5a5 !important;
+}
+
+.fof-shell .qr-page .qr-pred-bull {
+  background: rgba(34, 197, 94, 0.12) !important;
+  border-color: rgba(34, 197, 94, 0.3) !important;
+}
+
+.fof-shell .qr-page .qr-pred-bear {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.fof-shell .qr-page .qr-pred-neutral {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+.fof-shell .qr-page .qr-qs-mc-card.is-bust {
+  background: rgba(239, 68, 68, 0.12) !important;
+}
+
+.fof-shell .qr-page .qr-qs-mc-card.is-goal {
+  background: rgba(34, 197, 94, 0.12) !important;
+}
+
+.fof-shell .qr-page .qr-edu-buy-price,
+.fof-shell .qr-page .qr-co-symbol,
+.fof-shell .qr-page .qr-co-name,
+.fof-shell .qr-page .qr-stock-sym,
+.fof-shell .qr-page .qr-stock-price,
+.fof-shell .qr-page .qr-desk-symbol,
+.fof-shell .qr-page .qr-desk-kpi-val,
+.fof-shell .qr-page .qr-chart-kpi-val,
+.fof-shell .qr-page .qr-qs-val,
+.fof-shell .qr-page .qr-co-stat-value,
+.fof-shell .qr-page .site-prob-card h3,
+.fof-shell .qr-page .qr-empty-title,
+.fof-shell .qr-page .qr-hero-pro-title,
+.fof-shell .qr-page .qr-meta-pro {
+  color: #fff !important;
+}
+
+.fof-shell .qr-page .qr-edu-buy-label,
+.fof-shell .qr-page .qr-edu-buy-vs,
+.fof-shell .qr-page .qr-edu-lesson,
+.fof-shell .qr-page .qr-edu-lead,
+.fof-shell .qr-page .qr-edu-eyebrow,
+.fof-shell .qr-page .qr-edu-regime-meta,
+.fof-shell .qr-page .qr-co-stat-label,
+.fof-shell .qr-page .qr-co-sector,
+.fof-shell .qr-page .qr-co-desc,
+.fof-shell .qr-page .qr-stock-name,
+.fof-shell .qr-page .qr-stock-sector,
+.fof-shell .qr-page .qr-stock-metric-label,
+.fof-shell .qr-page .qr-desk-name,
+.fof-shell .qr-page .qr-desk-kpi-label,
+.fof-shell .qr-page .qr-desk-verdict,
+.fof-shell .qr-page .qr-chart-sub,
+.fof-shell .qr-page .qr-chart-kpi-label,
+.fof-shell .qr-page .qr-qs-label,
+.fof-shell .qr-page .qr-qs-tip,
+.fof-shell .qr-page .qr-qs-score-hint,
+.fof-shell .qr-page .qr-qs-block-title,
+.fof-shell .qr-page .qr-qs-mc-hint,
+.fof-shell .qr-page .qr-empty-msg,
+.fof-shell .qr-page .qr-empty-label,
+.fof-shell .qr-page .site-prob-card p,
+.fof-shell .qr-page .site-section-lead,
+.fof-shell .qr-page .qr-method-note {
+  color: var(--fof-muted) !important;
+}
+
+.fof-shell .qr-page .site-prob-track,
+.fof-shell .qr-page .qr-hbar-track,
+.fof-shell .qr-page .qr-pattern-track,
+.fof-shell .qr-page .qr-alpha-bar-wrap {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.fof-shell .qr-page .site-prob-fill,
+.fof-shell .qr-page .qr-alpha-bar {
+  background: #fff !important;
+}
+
+.fof-shell .qr-page .qr-content-wrap,
+.fof-shell .qr-page .qr-loading-gate,
+.fof-shell .qr-page .oa-skeleton,
+.fof-shell .qr-page .oa-skeleton-card,
+.fof-shell .qr-page .oa-skeleton-line,
+.fof-shell .qr-page .oa-skeleton-bar,
+.fof-shell .qr-page .oa-skeleton-th,
+.fof-shell .qr-page .oa-skeleton-td,
+.fof-shell .qr-page .oa-skeleton-kpi,
+.fof-shell .qr-page .oa-chart-skeleton-bar {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.fof-shell .qr-page .oa-skeleton {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  ) !important;
+}
+
+.fof-shell .qr-page .sym-search-input,
+.fof-shell .qr-page .sym-search-input:focus {
+  background: transparent !important;
+  color: #fff !important;
+  border-color: var(--fof-line) !important;
+}
+
+.fof-shell .qr-page .sym-search-input::placeholder {
+  color: var(--fof-dim) !important;
+}
+
+.fof-shell .qr-page .sym-search-dropdown,
+.fof-shell .qr-page .sym-search-empty {
+  background: #121a2b !important;
+  border-color: var(--fof-line) !important;
+  color: #fff !important;
+}
+
+.fof-shell .qr-page .sym-search-item,
+.fof-shell .qr-page .sym-search-item:hover,
+.fof-shell .qr-page .sym-search-item-active {
+  color: #fff !important;
+}
+
+.fof-shell .qr-page .sym-search-item:hover,
+.fof-shell .qr-page .sym-search-item-active {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.fof-shell .qr-page .sym-search-name,
+.fof-shell .qr-page .sym-search-cls,
+.fof-shell .qr-page .sym-search-hint,
+.fof-shell .qr-page .sym-search-group-label {
+  color: var(--fof-muted) !important;
+  background: transparent !important;
+  border-color: var(--fof-line) !important;
+}
+
+.fof-shell .qr-page .site-btn-outline:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: #fff !important;
+  color: #fff !important;
+}
+
+.fof-shell .qr-page .qr-loading-overlay {
+  background: rgba(11, 18, 32, 0.72) !important;
+}
+
+.fof-shell .qr-page a.qr-co-website,
+.fof-shell .qr-page .qr-co-website {
+  color: #93c5fd !important;
+}
+
+/* ── Research spacing system — consistent gutters ── */
+.fof-shell .qr-page-pro {
+  --qr-x: clamp(16px, 3.5vw, 28px);
+  --qr-gap: 16px;
+  --qr-pad: 20px;
+  --qr-max: 1120px;
+  width: 100%;
+  padding: 12px 0 64px !important;
+  box-sizing: border-box;
+}
+
+.fof-shell .qr-page-pro > .qr-hero-pro,
+.fof-shell .qr-page-pro > .qr-empty-state,
+.fof-shell .qr-page-pro > .qr-empty-pro,
+.fof-shell .qr-page-pro > .qr-loading-gate,
+.fof-shell .qr-page-pro > .qr-content-wrap,
+.fof-shell .qr-page-pro > .qr-fallback,
+.fof-shell .qr-page-pro > .oa-data-not-found {
+  width: min(var(--qr-max), calc(100% - (var(--qr-x) * 2))) !important;
+  max-width: var(--qr-max) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box;
+}
+
+/* Kill double horizontal padding from .site-section-wide */
+.fof-shell .qr-page-pro .site-section-wide {
+  max-width: none !important;
+  width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.fof-shell .qr-page-pro .qr-hero-pro {
+  padding: 24px 0 18px !important;
+}
+
+.fof-shell .qr-page-pro .qr-hero-pro-inner {
+  gap: 20px !important;
+  align-items: stretch !important;
+}
+
+.fof-shell .qr-page-pro .qr-hero-pro-title {
+  margin: 8px 0 0 !important;
+}
+
+.fof-shell .qr-page-pro .qr-hero-pro-search {
+  padding: var(--qr-pad) !important;
+  margin: 0 !important;
+}
+
+.fof-shell .qr-page-pro .qr-meta-pro {
+  margin: 14px 0 0 !important;
+}
+
+.fof-shell .qr-page-pro .qr-empty-state,
+.fof-shell .qr-page-pro .qr-empty-pro {
+  padding: 28px var(--qr-pad) !important;
+  margin-top: 8px !important;
+  margin-bottom: 24px !important;
+}
+
+.fof-shell .qr-page-pro .qr-loading-gate {
+  padding: 8px 0 24px !important;
+  margin-bottom: 0 !important;
+}
+
+.fof-shell .qr-page-pro .qr-loading-gate .oa-loading-full {
+  margin-bottom: 16px !important;
+  min-height: 120px !important;
+  padding: var(--qr-pad) !important;
+}
+
+.fof-shell .qr-page-pro .qr-page-skeleton {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.fof-shell .qr-page-pro .qr-content-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qr-gap);
+  padding: 0 0 8px !important;
+}
+
+.fof-shell .qr-page-pro .site-section,
+.fof-shell .qr-page-pro .qr-stock-grid-wrap {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+.fof-shell .qr-page-pro .qr-desk-bar,
+.fof-shell .qr-page-pro .qr-section-card,
+.fof-shell .qr-page-pro .qr-co-card,
+.fof-shell .qr-page-pro .qr-chart-card,
+.fof-shell .qr-page-pro .qr-risk-card,
+.fof-shell .qr-page-pro .qr-fallback-card,
+.fof-shell .qr-page-pro .qr-qs-chart-card,
+.fof-shell .qr-page-pro .qr-qs-group-card,
+.fof-shell .qr-page-pro .qr-edu-momentum,
+.fof-shell .qr-page-pro .qr-qs-panel,
+.fof-shell .qr-page-pro .qr-edu-panel,
+.fof-shell .qr-page-pro .qr-charts-section,
+.fof-shell .qr-page-pro .qr-risk-section,
+.fof-shell .qr-page-pro .qr-co-section,
+.fof-shell .qr-page-pro .qr-fallback,
+.fof-shell .qr-page-pro .site-section.qr-section-card,
+.fof-shell .qr-page-pro .site-section.qr-qs-panel,
+.fof-shell .qr-page-pro .site-section.qr-edu-panel,
+.fof-shell .qr-page-pro .site-section.qr-charts-section,
+.fof-shell .qr-page-pro .site-section.qr-risk-section,
+.fof-shell .qr-page-pro .site-section.qr-co-section,
+.fof-shell .qr-page-pro .site-section.qr-fallback {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: var(--qr-pad) !important;
+  box-sizing: border-box;
+}
+
+.fof-shell .qr-page-pro .qr-tabs-wrap {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 10px 12px 0 !important;
+  box-sizing: border-box;
+  top: 72px;
+}
+
+.fof-shell .qr-page-pro .qr-tabs {
+  gap: 4px;
+  padding-bottom: 10px;
+}
+
+.fof-shell .qr-page-pro .qr-tab {
+  padding: 8px 14px !important;
+}
+
+.fof-shell .qr-page-pro .qr-tabs-symbol {
+  padding: 0 2px 10px !important;
+  margin: 0 !important;
+}
+
+.fof-shell .qr-page-pro .qr-tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qr-gap);
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.fof-shell .qr-page-pro .site-section-title {
+  margin: 0 0 8px !important;
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem) !important;
+  line-height: 1.25 !important;
+}
+
+.fof-shell .qr-page-pro .site-section-lead {
+  margin: 0 0 16px !important;
+  font-size: 0.95rem !important;
+  line-height: 1.55 !important;
+  max-width: 62ch;
+}
+
+.fof-shell .qr-page-pro .qr-edu-title {
+  margin-bottom: 6px !important;
+}
+
+.fof-shell .qr-page-pro .qr-edu-lead {
+  margin-bottom: 16px !important;
+}
+
+.fof-shell .qr-page-pro .qr-stock-grid,
+.fof-shell .qr-page-pro .site-prob-grid,
+.fof-shell .qr-page-pro .qr-dual-grid,
+.fof-shell .qr-page-pro .qr-qs-grid,
+.fof-shell .qr-page-pro .qr-qs-charts,
+.fof-shell .qr-page-pro .qr-qs-groups {
+  width: 100%;
+  max-width: none !important;
+  margin: 0 !important;
+  gap: 12px !important;
+}
+
+.fof-shell .qr-page-pro .qr-stock-card,
+.fof-shell .qr-page-pro .qr-co-peer-card,
+.fof-shell .qr-page-pro .site-prob-card,
+.fof-shell .qr-page-pro .qr-qs-cell,
+.fof-shell .qr-page-pro .qr-qs-mc-card {
+  margin: 0 !important;
+  padding: 14px 16px !important;
+}
+
+.fof-shell .qr-page-pro .qr-table-wrap,
+.fof-shell .qr-page-pro .qr-qs-heat-wrap {
+  margin: 0 !important;
+  max-height: 360px;
+}
+
+.fof-shell .qr-page-pro .qr-qs-block {
+  margin-bottom: 16px !important;
+}
+
+.fof-shell .qr-page-pro .qr-qs-block:last-child {
+  margin-bottom: 0 !important;
+}
+
+.fof-shell .qr-page-pro .qr-qs-head {
+  margin-bottom: 16px !important;
+  gap: 12px !important;
+}
+
+.fof-shell .qr-page-pro .qr-desk-bar-top {
+  margin-bottom: 14px !important;
+  padding-bottom: 12px !important;
+}
+
+.fof-shell .qr-page-pro .qr-desk-kpi-row {
+  margin-bottom: 12px !important;
+  gap: 10px !important;
+}
+
+.fof-shell .qr-page-pro .qr-desk-verdict {
+  margin: 0 !important;
+  padding: 10px 12px !important;
+}
+
+.fof-shell .qr-page-pro .qr-method {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 4px 0 0 !important;
+  text-align: center;
+}
+
+.fof-shell .qr-page-pro .qr-method-note {
+  margin: 0 !important;
+}
+
+@media (max-width: 960px) {
+  .fof-shell .qr-page-pro {
+    --qr-pad: 16px;
+    --qr-gap: 14px;
+    padding-bottom: 48px !important;
+  }
+
+  .fof-shell .qr-page-pro .qr-tabs-wrap {
+    top: 64px;
+    padding: 8px 8px 0 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .fof-shell .qr-page-pro {
+    --qr-x: 14px;
+    --qr-pad: 14px;
+    padding-top: 8px !important;
+  }
+
+  .fof-shell .qr-page-pro .qr-hero-pro {
+    padding-top: 16px !important;
+    padding-bottom: 14px !important;
+  }
+
+  .fof-shell .qr-page-pro .qr-stock-card,
+  .fof-shell .qr-page-pro .site-prob-card,
+  .fof-shell .qr-page-pro .qr-qs-cell {
+    padding: 12px 14px !important;
+  }
+}
+
+/* ── Research clean dark — no white panels, readable text ── */
+.fof-shell .qr-page-clean,
+.fof-shell .qr-page-pro {
+  color: #fff !important;
+}
+
+.fof-shell .qr-page-clean .qr-hero-pro {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 20px 0 16px !important;
+}
+
+.fof-shell .qr-page-clean .qr-hero-pro-title {
+  margin: 0 !important;
+  font-size: clamp(1.5rem, 3vw, 1.85rem) !important;
+}
+
+.fof-shell .qr-page-clean .qr-hero-pro-search {
+  padding: 12px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--fof-line) !important;
+  border-radius: var(--fof-radius) !important;
+  box-shadow: none !important;
+}
+
+.fof-shell .qr-page-clean .qr-empty-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 !important;
+  justify-content: flex-start;
+}
+
+.fof-shell .qr-page-clean .qr-empty-chip {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid var(--fof-line) !important;
+  color: #fff !important;
+  border-radius: var(--fof-radius-sm) !important;
+  padding: 6px 12px !important;
+}
+
+.fof-shell .qr-page-clean .qr-empty-chip:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #fff !important;
+}
+
+.fof-shell .qr-page-clean .qr-tabs-wrap {
+  background: rgba(11, 18, 32, 0.92) !important;
+  border: 1px solid var(--fof-line) !important;
+  border-radius: var(--fof-radius) !important;
+  padding: 6px !important;
+}
+
+.fof-shell .qr-page-clean .qr-tab {
+  flex-direction: row !important;
+  padding: 10px 16px !important;
+}
+
+.fof-shell .qr-page-clean .qr-tab-hint {
+  display: none !important;
+}
+
+.fof-shell .qr-page-clean .qr-tab-label {
+  font-size: 0.92rem !important;
+  color: var(--fof-muted) !important;
+}
+
+.fof-shell .qr-page-clean .qr-tab-active .qr-tab-label,
+.fof-shell .qr-page-clean .qr-tab:hover .qr-tab-label {
+  color: #fff !important;
+}
+
+.fof-shell .qr-page .qr-edu-panel,
+.fof-shell .qr-page .qr-edu-momentum,
+.fof-shell .qr-page .qr-edu-buy-hero,
+.fof-shell .qr-page .qr-edu-zone,
+.fof-shell .qr-page .qr-edu-scenarios,
+.fof-shell .qr-page .qr-edu-signals,
+.fof-shell .qr-page .qr-edu-band,
+.fof-shell .qr-page .qr-pred-panel,
+.fof-shell .qr-page .qr-pred-outlook,
+.fof-shell .qr-page .qr-pred-scenario,
+.fof-shell .qr-page .qr-pred-card,
+.fof-shell .qr-page .qr-risk-card,
+.fof-shell .qr-page .qr-tactic-card,
+.fof-shell .qr-page .qr-desk-kpi,
+.fof-shell .qr-page .qr-desk-tags span,
+.fof-shell .qr-page .qr-desk-verdict,
+.fof-shell .qr-page .qr-co-key-chip,
+.fof-shell .qr-page .qr-stock-foot,
+.fof-shell .qr-page .qr-stock-pin,
+.fof-shell .qr-page .qr-table-wrap,
+.fof-shell .qr-page .qr-qs-cell,
+.fof-shell .qr-page .qr-qs-mc-card,
+.fof-shell .qr-page .qr-qs-chart-card,
+.fof-shell .qr-page .qr-qs-group-card,
+.fof-shell .qr-page .site-prob-card,
+.fof-shell .qr-page .oa-loading-full,
+.fof-shell .qr-page .oa-loading-panel {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: var(--fof-line) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.fof-shell .qr-page .qr-edu-buy-price,
+.fof-shell .qr-page .qr-edu-zone-price,
+.fof-shell .qr-page .qr-edu-block-title,
+.fof-shell .qr-page .qr-pred-scenario-label,
+.fof-shell .qr-page .qr-pred-scenario-pct,
+.fof-shell .qr-page .qr-co-name,
+.fof-shell .qr-page .qr-co-symbol,
+.fof-shell .qr-page .qr-stock-sym,
+.fof-shell .qr-page .qr-stock-price,
+.fof-shell .qr-page .qr-desk-symbol,
+.fof-shell .qr-page .qr-desk-kpi-val,
+.fof-shell .qr-page .qr-qs-val,
+.fof-shell .qr-page .qr-subtitle,
+.fof-shell .qr-page h2,
+.fof-shell .qr-page h3,
+.fof-shell .qr-page strong {
+  color: #fff !important;
+}
+
+.fof-shell .qr-page .qr-edu-buy-label,
+.fof-shell .qr-page .qr-edu-buy-vs,
+.fof-shell .qr-page .qr-edu-lesson,
+.fof-shell .qr-page .qr-edu-zone-label,
+.fof-shell .qr-page .qr-edu-eyebrow,
+.fof-shell .qr-page .qr-edu-lead,
+.fof-shell .qr-page .qr-co-desc,
+.fof-shell .qr-page .qr-co-sector,
+.fof-shell .qr-page .qr-co-stat-label,
+.fof-shell .qr-page .qr-stock-name,
+.fof-shell .qr-page .qr-desk-name,
+.fof-shell .qr-page .qr-desk-kpi-label,
+.fof-shell .qr-page .qr-qs-label,
+.fof-shell .qr-page .qr-qs-tip,
+.fof-shell .qr-page .qr-qs-block-title,
+.fof-shell .qr-page p,
+.fof-shell .qr-page td,
+.fof-shell .qr-page th,
+.fof-shell .qr-page li {
+  color: var(--fof-muted) !important;
+}
+
+.fof-shell .qr-page .qr-edu-regime-strong,
+.fof-shell .qr-page .qr-pred-bull,
+.fof-shell .qr-page .qr-qs-mc-card.is-goal {
+  background: rgba(34, 197, 94, 0.14) !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+  color: #86efac !important;
+}
+
+.fof-shell .qr-page .qr-edu-regime-moderate,
+.fof-shell .qr-page .qr-pred-neutral {
+  background: rgba(245, 158, 11, 0.14) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  color: #fcd34d !important;
+}
+
+.fof-shell .qr-page .qr-edu-regime-weak,
+.fof-shell .qr-page .qr-pred-bear,
+.fof-shell .qr-page .qr-qs-mc-card.is-bust {
+  background: rgba(239, 68, 68, 0.14) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #fca5a5 !important;
+}
+
+.fof-shell .qr-page .qr-pred-scenario-track,
+.fof-shell .qr-page .site-prob-track,
+.fof-shell .qr-page .qr-alpha-bar-wrap {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.fof-shell .qr-page .qr-pred-scenario-fill,
+.fof-shell .qr-page .site-prob-fill,
+.fof-shell .qr-page .qr-alpha-bar {
+  background: #fff !important;
+}
+
+.fof-shell .qr-page .qr-svg,
+.fof-shell .qr-page .qr-svg-frame {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: var(--fof-line) !important;
+}
+
+.fof-shell .qr-page .pnl-pos {
+  color: #4ade80 !important;
+}
+
+.fof-shell .qr-page .pnl-neg {
+  color: #f87171 !important;
+}
+
+.fof-shell .qr-page .qr-desk-verdict {
+  border-left-color: #fff !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--fof-muted) !important;
+}
+
+.fof-shell .qr-page .qr-co-class-badge,
+.fof-shell .qr-page .qr-co-primary-badge {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--fof-line) !important;
+  color: #fff !important;
+}
+
+.fof-shell .qr-page .qr-table th,
+.fof-shell .qr-page .qr-row-primary,
+.fof-shell .qr-page .qr-qs-heat th {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #fff !important;
+}
+
+.fof-shell .qr-page .mono {
+  color: inherit;
+}
+
+.fof-shell .qr-page td.mono,
+.fof-shell .qr-page .qr-sym,
+.fof-shell .qr-page .qr-alpha-val,
+.fof-shell .qr-page .qr-desk-kpi-val.mono,
+.fof-shell .qr-page .qr-co-stat-value,
+.fof-shell .qr-page .qr-qs-val {
+  color: #fff !important;
+}
+
 /* Docs / About / Contact extras */
 .fof-shell .site-docs-search input,
 .fof-shell .site-contact input,

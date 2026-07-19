@@ -26,7 +26,7 @@ export function ResearchDeskBar({ data, primary }: { data: QuantResearchData; pr
   ];
 
   return (
-    <section className="qr-desk-bar site-section-wide">
+    <section className="qr-desk-bar">
       <div className="qr-desk-bar-top">
         <div className="qr-desk-identity">
           <span className="qr-desk-code mono">QR</span>

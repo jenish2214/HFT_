@@ -4,11 +4,11 @@ import type { ReactNode } from "react";
 
 export type ResearchTabId = "overview" | "performance" | "analysis" | "risk";
 
-const TABS: { id: ResearchTabId; label: string; hint: string }[] = [
-  { id: "overview", label: "Overview", hint: "Profile & peers" },
-  { id: "performance", label: "Performance", hint: "Full risk report" },
-  { id: "analysis", label: "Analysis", hint: "Momentum & charts" },
-  { id: "risk", label: "Risk & factors", hint: "Metrics & CAPM" },
+const TABS: { id: ResearchTabId; label: string }[] = [
+  { id: "overview", label: "Overview" },
+  { id: "performance", label: "Performance" },
+  { id: "analysis", label: "Analysis" },
+  { id: "risk", label: "Risk" },
 ];
 
 interface Props {
@@ -17,10 +17,11 @@ interface Props {
   symbol?: string;
 }
 
-export default function ResearchTabNav({ active, onChange, symbol }: Props) {
+/** Simple research section tabs. */
+export default function ResearchTabNav({ active, onChange }: Props) {
   return (
-    <div className="qr-tabs-wrap site-section-wide">
-      <nav className="qr-tabs" aria-label="Research sections">
+    <nav className="qr-tabs-wrap" aria-label="Research sections">
+      <div className="qr-tabs">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -30,16 +31,10 @@ export default function ResearchTabNav({ active, onChange, symbol }: Props) {
             aria-current={active === tab.id ? "page" : undefined}
           >
             <span className="qr-tab-label">{tab.label}</span>
-            <span className="qr-tab-hint">{tab.hint}</span>
           </button>
         ))}
-      </nav>
-      {symbol && (
-        <p className="qr-tabs-symbol mono" aria-live="polite">
-          Viewing <strong>{symbol}</strong>
-        </p>
-      )}
-    </div>
+      </div>
+    </nav>
   );
 }
 

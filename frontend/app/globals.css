@@ -3148,119 +3148,119 @@ tbody tr:hover { background: var(--surface-2); }
 }
 
 /* Research page — light symbol search (no black dropdown) */
-.qr-page .sym-search-dropdown {
+.site-page:not(.fof-shell) .qr-page .sym-search-dropdown {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   box-shadow: 0 8px 24px rgba(37, 99, 235, 0.12);
 }
-.qr-page .sym-search-hint {
+.site-page:not(.fof-shell) .qr-page .sym-search-hint {
   color: #64748b;
   border-bottom-color: #e2e8f0;
   background: #f8fafc;
 }
-.qr-page .sym-search-group-label {
+.site-page:not(.fof-shell) .qr-page .sym-search-group-label {
   background: #eff6ff;
   color: #2563eb;
   border-top-color: #e2e8f0;
 }
-.qr-page .sym-search-item {
+.site-page:not(.fof-shell) .qr-page .sym-search-item {
   color: #334155;
 }
-.qr-page .sym-search-item:hover,
-.qr-page .sym-search-item-active {
+.site-page:not(.fof-shell) .qr-page .sym-search-item:hover,
+.site-page:not(.fof-shell) .qr-page .sym-search-item-active {
   background: #eff6ff;
   color: #2563eb;
 }
-.qr-page .sym-search-cls { color: #94a3b8; }
-.qr-page .sym-search-name { color: #64748b; }
-.qr-page .sym-search-item:hover .sym-search-name,
-.qr-page .sym-search-item-active .sym-search-name { color: #2563eb; }
+.site-page:not(.fof-shell) .qr-page .sym-search-cls { color: #94a3b8; }
+.site-page:not(.fof-shell) .qr-page .sym-search-name { color: #64748b; }
+.site-page:not(.fof-shell) .qr-page .sym-search-item:hover .sym-search-name,
+.site-page:not(.fof-shell) .qr-page .sym-search-item-active .sym-search-name { color: #2563eb; }
 
 /* Research page — never use terminal black on hover */
-.qr-page tbody tr:hover,
-.qr-page tbody tr:focus-within {
+.site-page:not(.fof-shell) .qr-page tbody tr:hover,
+.site-page:not(.fof-shell) .qr-page tbody tr:focus-within {
   background: transparent !important;
 }
-.qr-page .sym-search-dropdown,
-.qr-page .sym-search-empty {
+.site-page:not(.fof-shell) .qr-page .sym-search-dropdown,
+.site-page:not(.fof-shell) .qr-page .sym-search-empty {
   background: #ffffff !important;
   border-color: #e2e8f0 !important;
   box-shadow: 0 8px 24px rgba(37, 99, 235, 0.12) !important;
 }
-.qr-page .sym-search-item,
-.qr-page .sym-search-item:hover,
-.qr-page .sym-search-item-active,
-.qr-page .sym-search-item:focus {
+.site-page:not(.fof-shell) .qr-page .sym-search-item,
+.site-page:not(.fof-shell) .qr-page .sym-search-item:hover,
+.site-page:not(.fof-shell) .qr-page .sym-search-item-active,
+.site-page:not(.fof-shell) .qr-page .sym-search-item:focus {
   background: transparent !important;
   color: #334155 !important;
 }
-.qr-page .sym-search-item:hover,
-.qr-page .sym-search-item-active {
+.site-page:not(.fof-shell) .qr-page .sym-search-item:hover,
+.site-page:not(.fof-shell) .qr-page .sym-search-item-active {
   background: #eff6ff !important;
   color: #2563eb !important;
 }
-.qr-page .sym-search-group-label {
+.site-page:not(.fof-shell) .qr-page .sym-search-group-label {
   background: #eff6ff !important;
   border-top-color: #e2e8f0 !important;
 }
-.qr-page .sym-search-hint {
+.site-page:not(.fof-shell) .qr-page .sym-search-hint {
   background: #f8fafc !important;
   border-bottom-color: #e2e8f0 !important;
   color: #64748b !important;
 }
-.qr-page .sym-search-input,
-.qr-page .sym-search-input:focus {
+.site-page:not(.fof-shell) .qr-page .sym-search-input,
+.site-page:not(.fof-shell) .qr-page .sym-search-input:focus {
   background: #ffffff !important;
   color: #18181b !important;
   border-color: #e2e8f0 !important;
 }
-.qr-page .sym-search-input:focus {
+.site-page:not(.fof-shell) .qr-page .sym-search-input:focus {
   border-color: #2563eb !important;
   outline: none;
 }
-.qr-page .oa-data-not-found-retry {
+.site-page:not(.fof-shell) .qr-page .oa-data-not-found-retry {
   background: #eff6ff !important;
   border-color: #2563eb !important;
   color: #2563eb !important;
 }
-.qr-page .oa-data-not-found-retry:hover {
+.site-page:not(.fof-shell) .qr-page .oa-data-not-found-retry:hover {
   background: #dbeafe !important;
   opacity: 1 !important;
 }
-.qr-page .qr-svg {
+.site-page:not(.fof-shell) .qr-page .qr-svg {
   background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%) !important;
 }
-.qr-page .qr-chart-card {
+.site-page:not(.fof-shell) .qr-page .qr-chart-card {
   background: #ffffff !important;
 }
-.qr-page .qr-stock-card {
+.site-page:not(.fof-shell) .qr-page .qr-stock-card {
   background: #ffffff !important;
 }
-.qr-page .qr-co-card {
+.site-page:not(.fof-shell) .qr-page .qr-co-card {
   background: #ffffff !important;
 }
-.qr-page .qr-co-peer-card {
+.site-page:not(.fof-shell) .qr-page .qr-co-peer-card {
   background: #ffffff !important;
 }
-.qr-page .site-btn:hover,
-.qr-page .site-btn:focus {
+.site-page:not(.fof-shell) .qr-page .site-btn:hover,
+.site-page:not(.fof-shell) .qr-page .site-btn:focus {
   background: inherit;
 }
-.qr-page .site-btn-outline:hover {
+.site-page:not(.fof-shell) .qr-page .site-btn-outline:hover {
   background: #f8fafc !important;
   border-color: #2563eb !important;
   color: #2563eb !important;
 }
-.qr-page .qr-co-website:hover {
+.site-page:not(.fof-shell) .qr-page .qr-co-website:hover {
   background: transparent !important;
 }
-.qr-page button:hover,
-.qr-page button:focus {
+.site-page:not(.fof-shell) .qr-page button:hover,
+.site-page:not(.fof-shell) .qr-page button:focus {
   filter: none;
 }
-.qr-page .qr-stock-card:hover,
-.qr-page .qr-co-peer-card:hover,
-.qr-page .site-prob-card:hover {
+.site-page:not(.fof-shell) .qr-page .qr-stock-card:hover,
+.site-page:not(.fof-shell) .qr-page .qr-co-peer-card:hover,
+.site-page:not(.fof-shell) .qr-page .site-prob-card:hover {
   background: inherit !important;
   box-shadow: none !important;
   transform: none !important;
@@ -3279,7 +3279,7 @@ tbody tr:hover { background: var(--surface-2); }
 .qr-stock-card {
   border: 1px solid var(--site-border);
   border-radius: 0;
-  background: #ffffff;
+  background: var(--site-surface);
   padding: 14px 16px;
   cursor: default;
   border-top: 3px solid var(--qr-accent, #2563eb);
@@ -3350,7 +3350,7 @@ tbody tr:hover { background: var(--surface-2); }
 .qr-co-card {
   max-width: 1120px;
   margin: 0 auto 28px;
-  background: #ffffff;
+  background: var(--site-surface);
   border: 1px solid var(--site-border);
   border-radius: 0;
   padding: 20px 22px;
@@ -3620,7 +3620,7 @@ tbody tr:hover { background: var(--surface-2); }
   max-width: 1120px;
   padding: 20px 24px;
   border: 1px solid var(--site-border);
-  background: #ffffff;
+  background: var(--site-surface);
   margin-bottom: 8px;
 }
 .qr-desk-bar-top {
