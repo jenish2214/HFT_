@@ -60,27 +60,37 @@ function ResearchRiskFactors({
               </tr>
             </thead>
             <tbody>
-              {data.factor_scores.map((row, i) => (
-                <tr key={row.symbol} className={row.symbol === primary ? "qr-row-primary" : ""}>
-                  <td className="mono qr-sym">{row.symbol}</td>
-                  <td className="mono">{((row.momentum_63d ?? 0) * 100).toFixed(1)}%</td>
-                  <td className="mono">{((row.reversal_5d ?? 0) * 100).toFixed(1)}%</td>
-                  <td className="mono">{((row.trend_sma50 ?? 0) * 100).toFixed(1)}%</td>
-                  <td className="mono">{row.rsi_14?.toFixed(0) ?? "—"}</td>
-                  <td>
-                    <div className="qr-alpha-bar-wrap">
-                      <div
-                        className={`qr-alpha-bar site-prob-fill${factorsVisible ? " qr-bar-animate" : ""}`}
-                        style={{
-                          width: factorsVisible ? `${alphaBar(row.composite_alpha)}%` : "0%",
-                          transitionDelay: `${i * 0.06}s`,
-                        }}
-                      />
-                      <span className="mono qr-alpha-val">{row.composite_alpha?.toFixed(2) ?? "—"}</span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                {data.factor_scores.map((row, i) => {
+                const alpha = row.composite_alpha;
+                const mom = (row.momentum_63d ?? 0) * 100;
+                const rev = (row.reversal_5d ?? 0) * 100;
+                const trend = (row.trend_sma50 ?? 0) * 100;
+                return (
+                  <tr key={row.symbol} className={row.symbol === primary ? "qr-row-primary" : ""}>
+                    <td className="mono qr-sym">{row.symbol}</td>
+                    <td className={`mono ${mom >= 0 ? "pnl-pos" : "pnl-neg"}`}>{mom.toFixed(1)}%</td>
+                    <td className={`mono ${rev >= 0 ? "pnl-pos" : "pnl-neg"}`}>{rev.toFixed(1)}%</td>
+                    <td className={`mono ${trend >= 0 ? "pnl-pos" : "pnl-neg"}`}>{trend.toFixed(1)}%</td>
+                    <td className="mono">{row.rsi_14?.toFixed(0) ?? "—"}</td>
+                    <td>
+                      <div className="qr-alpha-bar-wrap">
+                        <div
+                          className={`qr-alpha-bar site-prob-fill${factorsVisible ? " qr-bar-animate" : ""}${
+                            (alpha ?? 0) >= 0 ? " qr-alpha-bar-pos" : " qr-alpha-bar-neg"
+                          }`}
+                          style={{
+                            width: factorsVisible ? `${alphaBar(alpha)}%` : "0%",
+                            transitionDelay: `${i * 0.06}s`,
+                          }}
+                        />
+                        <span className={`mono qr-alpha-val ${(alpha ?? 0) >= 0 ? "pnl-pos" : "pnl-neg"}`}>
+                          {alpha?.toFixed(2) ?? "—"}
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -104,9 +114,9 @@ function ResearchRiskFactors({
                 {data.risk_metrics.map((r) => (
                   <tr key={r.symbol}>
                     <td className="mono">{r.symbol}</td>
-                    <td className="mono">{r.sharpe ?? "—"}</td>
+                    <td className={`mono ${(r.sharpe ?? 0) >= 0 ? "pnl-pos" : "pnl-neg"}`}>{r.sharpe ?? "—"}</td>
                     <td className="mono">{r.ann_vol_pct ?? "—"}</td>
-                    <td className="mono">{r.max_drawdown_pct ?? "—"}</td>
+                    <td className="mono pnl-neg">{r.max_drawdown_pct ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -123,15 +133,19 @@ function ResearchRiskFactors({
                 </tr>
               </thead>
               <tbody>
-                {data.capm.map((c) => (
-                  <tr key={c.symbol}>
-                    <td className="mono">{c.symbol}</td>
-                    <td className={`mono ${(c.alpha_ann_pct ?? 0) >= 0 ? "pnl-pos" : "pnl-neg"}`}>
-                      {c.alpha_ann_pct ?? "—"}
-                    </td>
-                    <td className="mono">{c.beta ?? "—"}</td>
-                  </tr>
-                ))}
+                {data.capm.map((c) => {
+                  const a = c.alpha_ann_pct;
+                  const tone = a == null ? "" : a >= 0 ? " qr-pnl-bg-pos" : " qr-pnl-bg-neg";
+                  return (
+                    <tr key={c.symbol}>
+                      <td className="mono">{c.symbol}</td>
+                      <td className={`mono qr-pnl-cell${tone} ${a == null ? "" : a >= 0 ? "pnl-pos" : "pnl-neg"}`}>
+                        {a == null ? "—" : `${a > 0 ? "+" : ""}${a}`}
+                      </td>
+                      <td className="mono">{c.beta ?? "—"}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -3852,3 +3852,118 @@ body:has(.fof-shell) {
 .fof-shell .qr-tabs-wrap {
   background: #0b1220 !important;
 }
+
+/* ── Research trading PnL (green profit / red loss) — after light-kill rules ── */
+.fof-shell .qr-page {
+  --qr-pnl-pos: #4ade80;
+  --qr-pnl-neg: #f87171;
+  --qr-pnl-pos-bg: rgba(34, 197, 94, 0.16);
+  --qr-pnl-neg-bg: rgba(239, 68, 68, 0.16);
+  --qr-pnl-pos-border: rgba(34, 197, 94, 0.4);
+  --qr-pnl-neg-border: rgba(239, 68, 68, 0.4);
+}
+
+.fof-shell .qr-page .qr-pnl-bg-pos,
+.fof-shell .qr-page .qr-desk-kpi.qr-pnl-bg-pos,
+.fof-shell .qr-page .qr-qs-cell.qr-pnl-bg-pos,
+.fof-shell .qr-page .qr-qs-mc-card.qr-pnl-bg-pos,
+.fof-shell .qr-page .qr-qs-chart-card.qr-pnl-bg-pos,
+.fof-shell .qr-page .qr-desk-quote.qr-pnl-bg-pos,
+.fof-shell .qr-page .qr-chart-kpi.qr-pnl-bg-pos {
+  background: var(--qr-pnl-pos-bg) !important;
+  border-color: var(--qr-pnl-pos-border) !important;
+  color: #fff !important;
+}
+
+.fof-shell .qr-page .qr-pnl-bg-neg,
+.fof-shell .qr-page .qr-desk-kpi.qr-pnl-bg-neg,
+.fof-shell .qr-page .qr-qs-cell.qr-pnl-bg-neg,
+.fof-shell .qr-page .qr-qs-mc-card.qr-pnl-bg-neg,
+.fof-shell .qr-page .qr-qs-chart-card.qr-pnl-bg-neg,
+.fof-shell .qr-page .qr-desk-quote.qr-pnl-bg-neg,
+.fof-shell .qr-page .qr-chart-kpi.qr-pnl-bg-neg {
+  background: var(--qr-pnl-neg-bg) !important;
+  border-color: var(--qr-pnl-neg-border) !important;
+  color: #fff !important;
+}
+
+.fof-shell .qr-page .qr-desk-bar-pro.qr-desk-bar-pos {
+  border-color: var(--qr-pnl-pos-border) !important;
+  box-shadow: inset 3px 0 0 #22c55e !important;
+}
+
+.fof-shell .qr-page .qr-desk-bar-pro.qr-desk-bar-neg {
+  border-color: var(--qr-pnl-neg-border) !important;
+  box-shadow: inset 3px 0 0 #ef4444 !important;
+}
+
+.fof-shell .qr-page .qr-desk-quote {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: var(--fof-line) !important;
+}
+
+.fof-shell .qr-page .qr-desk-quote-main,
+.fof-shell .qr-page .qr-desk-quote-chg {
+  border-color: var(--fof-line) !important;
+}
+
+.fof-shell .qr-page .qr-desk-quote-label {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+.fof-shell .qr-page .qr-desk-quote-price {
+  color: #fff !important;
+}
+
+.fof-shell .qr-page .pnl-pos,
+.fof-shell .qr-page .qr-pnl-text-pos,
+.fof-shell .qr-page .qr-desk-kpi-pos,
+.fof-shell .qr-page .qr-desk-kpi-val.pnl-pos,
+.fof-shell .qr-page .qr-qs-val.pnl-pos,
+.fof-shell .qr-page .qr-alpha-val.pnl-pos,
+.fof-shell .qr-page td.pnl-pos,
+.fof-shell .qr-page .qr-desk-quote-pct.pnl-pos {
+  color: var(--qr-pnl-pos) !important;
+}
+
+.fof-shell .qr-page .pnl-neg,
+.fof-shell .qr-page .qr-pnl-text-neg,
+.fof-shell .qr-page .qr-desk-kpi-neg,
+.fof-shell .qr-page .qr-desk-kpi-val.pnl-neg,
+.fof-shell .qr-page .qr-qs-val.pnl-neg,
+.fof-shell .qr-page .qr-alpha-val.pnl-neg,
+.fof-shell .qr-page td.pnl-neg,
+.fof-shell .qr-page .qr-desk-quote-pct.pnl-neg {
+  color: var(--qr-pnl-neg) !important;
+}
+
+.fof-shell .qr-page .qr-pnl-cell.qr-pnl-bg-pos,
+.fof-shell .qr-page .qr-pnl-cell.qr-pnl-bg-neg {
+  display: inline-block;
+  min-width: 3.5rem;
+  text-align: right;
+}
+
+.fof-shell .qr-page .qr-alpha-bar.qr-alpha-bar-pos {
+  background: #22c55e !important;
+}
+
+.fof-shell .qr-page .qr-alpha-bar.qr-alpha-bar-neg {
+  background: #ef4444 !important;
+}
+
+.fof-shell .qr-page .qr-desk-verdict {
+  border-left-color: rgba(255, 255, 255, 0.35) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.fof-shell .qr-page .qr-desk-bar-pro.qr-desk-bar-pos .qr-desk-verdict {
+  border-left-color: #22c55e !important;
+  background: rgba(34, 197, 94, 0.08) !important;
+}
+
+.fof-shell .qr-page .qr-desk-bar-pro.qr-desk-bar-neg .qr-desk-verdict {
+  border-left-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+}

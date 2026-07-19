@@ -1,6 +1,7 @@
 "use client";
 
 import type { QuantResearchData, QuantStatsHeadline } from "@/lib/quantResearchTypes";
+import { pnlTone, type PnlTone } from "@/components/QuantResearchDesk";
 
 interface Props {
   data: QuantResearchData;
@@ -9,13 +10,45 @@ interface Props {
 
 function fmtHeadline(h: QuantStatsHeadline): string {
   if (h.value == null) return "—";
-  if (h.fmt === "pct") return `${h.value}%`;
+  if (h.fmt === "pct") {
+    const sign = h.value > 0 ? "+" : "";
+    return `${sign}${h.value}%`;
+  }
   return Number(h.value).toFixed(3);
 }
 
 function fmtNum(v: number | null | undefined, digits = 2): string {
   if (v == null) return "—";
   return v.toFixed(digits);
+}
+
+/** Map headline metrics to profit/loss tone for trading-style chips. */
+function headlineTone(h: QuantStatsHeadline): PnlTone {
+  if (h.value == null) return "neutral";
+  const id = h.id.toLowerCase();
+  const label = h.label.toLowerCase();
+
+  if (
+    id.includes("drawdown") ||
+    id.includes("cvar") ||
+    id.includes("var") ||
+    id.includes("worst") ||
+    label.includes("drawdown") ||
+    label.includes("worst")
+  ) {
+    return "neg";
+  }
+  if (id.includes("vol") || label.includes("volatility")) return "neutral";
+  if (id.includes("win") || label.includes("win rate")) {
+    return h.value >= 50 ? "pos" : "neg";
+  }
+  return pnlTone(h.value);
+}
+
+function toneBg(tone: PnlTone): string {
+  if (tone === "pos") return " qr-pnl-bg-pos";
+  if (tone === "neg") return " qr-pnl-bg-neg";
+  return "";
 }
 
 function MiniLine({
@@ -53,7 +86,7 @@ function MiniLine({
 
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="qr-qs-svg" role="img" aria-hidden>
-      {area && <path d={area} fill={fill} opacity={0.15} />}
+      {area && <path d={area} fill={fill} opacity={0.18} />}
       <polyline points={line} fill="none" stroke={stroke} strokeWidth={2} />
     </svg>
   );
@@ -66,10 +99,11 @@ function HeatCell({ value }: { value: number | null }) {
   const intensity = Math.min(1, Math.abs(value) / 12);
   const bg =
     value >= 0
-      ? `rgba(34, 197, 94, ${0.12 + intensity * 0.55})`
-      : `rgba(239, 68, 68, ${0.12 + intensity * 0.55})`;
+      ? `rgba(34, 197, 94, ${0.18 + intensity * 0.55})`
+      : `rgba(239, 68, 68, ${0.18 + intensity * 0.55})`;
+  const tone = value >= 0 ? "pos" : "neg";
   return (
-    <td className="qr-qs-heat-cell" style={{ background: bg }}>
+    <td className={`qr-qs-heat-cell qr-pnl-text-${tone}`} style={{ background: bg }}>
       {value >= 0 ? "+" : ""}
       {value.toFixed(1)}
     </td>
@@ -104,25 +138,30 @@ export default function QuantStatsPanel({ data, primary }: Props) {
       <div className="qr-qs-block">
         <h3 className="qr-qs-block-title">Key numbers</h3>
         <div className="qr-qs-grid qr-qs-grid-dense">
-          {headlines.map((h) => (
-            <div key={h.id} className="qr-qs-cell" title={h.tip}>
-              <span className="qr-qs-label">{h.label}</span>
-              <strong className="mono qr-qs-val">{fmtHeadline(h)}</strong>
-              {h.tip && <span className="qr-qs-tip">{h.tip}</span>}
-            </div>
-          ))}
+          {headlines.map((h) => {
+            const tone = headlineTone(h);
+            return (
+              <div key={h.id} className={`qr-qs-cell${toneBg(tone)}`} title={h.tip}>
+                <span className="qr-qs-label">{h.label}</span>
+                <strong className={`mono qr-qs-val${tone !== "neutral" ? ` pnl-${tone}` : ""}`}>
+                  {fmtHeadline(h)}
+                </strong>
+                {h.tip && <span className="qr-qs-tip">{h.tip}</span>}
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* 2. Equity + drawdown */}
       <div className="qr-qs-charts">
-        <div className="qr-qs-chart-card">
+        <div className="qr-qs-chart-card qr-pnl-bg-pos qr-qs-chart-card-soft">
           <h3 className="qr-qs-block-title">Growth of $100</h3>
-          <MiniLine points={qs.equity_curve ?? []} stroke="#0f172a" fill="#0f172a" />
+          <MiniLine points={qs.equity_curve ?? []} stroke="#4ade80" fill="#22c55e" />
         </div>
-        <div className="qr-qs-chart-card">
+        <div className="qr-qs-chart-card qr-pnl-bg-neg qr-qs-chart-card-soft">
           <h3 className="qr-qs-block-title">Drawdown %</h3>
-          <MiniLine points={qs.drawdown_curve ?? []} stroke="#ef4444" fill="#ef4444" />
+          <MiniLine points={qs.drawdown_curve ?? []} stroke="#f87171" fill="#ef4444" />
         </div>
       </div>
 
@@ -132,13 +171,13 @@ export default function QuantStatsPanel({ data, primary }: Props) {
           <h3 className="qr-qs-block-title">Monte Carlo simulation</h3>
           <p className="qr-qs-mc-hint">{mc.hint}</p>
           <div className="qr-qs-mc-row">
-            <div className="qr-qs-mc-card is-bust">
+            <div className="qr-qs-mc-card is-bust qr-pnl-bg-neg">
               <span className="qr-qs-label">Bust chance ({mc.bust_threshold_pct}%)</span>
-              <strong className="mono qr-qs-val">{fmtNum(mc.bust_probability_pct, 1)}%</strong>
+              <strong className="mono qr-qs-val pnl-neg">{fmtNum(mc.bust_probability_pct, 1)}%</strong>
             </div>
-            <div className="qr-qs-mc-card is-goal">
+            <div className="qr-qs-mc-card is-goal qr-pnl-bg-pos">
               <span className="qr-qs-label">Goal chance (+{mc.goal_threshold_pct}%)</span>
-              <strong className="mono qr-qs-val">{fmtNum(mc.goal_probability_pct, 1)}%</strong>
+              <strong className="mono qr-qs-val pnl-pos">{fmtNum(mc.goal_probability_pct, 1)}%</strong>
             </div>
             <div className="qr-qs-mc-card">
               <span className="qr-qs-label">Simulations</span>
@@ -185,14 +224,18 @@ export default function QuantStatsPanel({ data, primary }: Props) {
               <h3 className="qr-qs-block-title">{g.title}</h3>
               <table className="qr-qs-table">
                 <tbody>
-                  {g.rows.map((row) => (
-                    <tr key={row.label}>
-                      <td>{row.label}</td>
-                      <td className="mono">
-                        {typeof row.value === "number" ? row.value : row.value ?? "—"}
-                      </td>
-                    </tr>
-                  ))}
+                  {g.rows.map((row) => {
+                    const num = typeof row.value === "number" ? row.value : null;
+                    const tone = num != null ? pnlTone(num) : "neutral";
+                    return (
+                      <tr key={row.label}>
+                        <td>{row.label}</td>
+                        <td className={`mono${tone !== "neutral" ? ` pnl-${tone}` : ""}`}>
+                          {typeof row.value === "number" ? row.value : row.value ?? "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

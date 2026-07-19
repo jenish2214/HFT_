@@ -1531,3 +1531,153 @@
     animation: none !important;
   }
 }
+
+/* ── Research PnL / trading desk ── */
+.qr-page {
+  --qr-pnl-pos: #16a34a;
+  --qr-pnl-neg: #dc2626;
+  --qr-pnl-pos-bg: rgba(22, 163, 74, 0.12);
+  --qr-pnl-neg-bg: rgba(220, 38, 38, 0.12);
+  --qr-pnl-pos-border: rgba(22, 163, 74, 0.32);
+  --qr-pnl-neg-border: rgba(220, 38, 38, 0.32);
+}
+
+.qr-pnl-bg-pos {
+  background: var(--qr-pnl-pos-bg) !important;
+  border-color: var(--qr-pnl-pos-border) !important;
+}
+
+.qr-pnl-bg-neg {
+  background: var(--qr-pnl-neg-bg) !important;
+  border-color: var(--qr-pnl-neg-border) !important;
+}
+
+.qr-page .qr-pnl-text-pos,
+.qr-page .pnl-pos {
+  color: var(--qr-pnl-pos);
+}
+
+.qr-page .qr-pnl-text-neg,
+.qr-page .pnl-neg {
+  color: var(--qr-pnl-neg);
+}
+
+.qr-pnl-cell {
+  border-radius: 4px;
+  padding: 4px 8px !important;
+}
+
+.qr-desk-bar-pro {
+  border-radius: var(--site-radius-lg, 10px);
+  overflow: hidden;
+}
+
+.qr-desk-bar-pro.qr-desk-bar-pos {
+  border-color: var(--qr-pnl-pos-border);
+  box-shadow: inset 3px 0 0 var(--qr-pnl-pos);
+}
+
+.qr-desk-bar-pro.qr-desk-bar-neg {
+  border-color: var(--qr-pnl-neg-border);
+  box-shadow: inset 3px 0 0 var(--qr-pnl-neg);
+}
+
+.qr-desk-quote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid var(--site-border);
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: min(100%, 280px);
+}
+
+.qr-desk-quote-main,
+.qr-desk-quote-chg {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 14px;
+}
+
+.qr-desk-quote-main {
+  border-right: 1px solid var(--site-border);
+}
+
+.qr-desk-quote-chg + .qr-desk-quote-chg {
+  border-left: 1px solid var(--site-border);
+}
+
+.qr-desk-quote-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--site-text-muted);
+}
+
+.qr-desk-quote-price {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--site-text);
+}
+
+.qr-desk-quote-pct {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.qr-desk-bar-pro .qr-desk-kpi {
+  border-radius: 8px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.qr-desk-bar-pro .qr-desk-kpi-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.qr-desk-bar-pro .qr-desk-kpi-pos,
+.qr-desk-bar-pro .pnl-pos {
+  color: var(--qr-pnl-pos);
+}
+
+.qr-desk-bar-pro .qr-desk-kpi-neg,
+.qr-desk-bar-pro .pnl-neg {
+  color: var(--qr-pnl-neg);
+}
+
+.qr-qs-cell.qr-pnl-bg-pos .qr-qs-val,
+.qr-qs-cell.qr-pnl-bg-neg .qr-qs-val {
+  font-weight: 700;
+}
+
+.qr-qs-chart-card-soft {
+  border-radius: 10px;
+}
+
+.qr-alpha-bar-pos {
+  background: var(--qr-pnl-pos) !important;
+}
+
+.qr-alpha-bar-neg {
+  background: var(--qr-pnl-neg) !important;
+}
+
+@media (max-width: 720px) {
+  .qr-desk-bar-top {
+    flex-direction: column;
+  }
+
+  .qr-desk-quote {
+    width: 100%;
+  }
+
+  .qr-desk-quote-main,
+  .qr-desk-quote-chg {
+    flex: 1;
+  }
+}
