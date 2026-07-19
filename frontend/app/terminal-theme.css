@@ -110,3 +110,55 @@
     font-size: 14px;
   }
 }
+
+/* Left MON column — keep compact so filters/table do not break */
+.terminal-body .wl-panel .panel-title {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.terminal-body .wl-filter-btn {
+  font-size: 9px;
+  padding: 3px 6px;
+}
+
+.terminal-body .wl-table,
+.terminal-body .wl-table td,
+.terminal-body .wl-table th {
+  font-size: 11px;
+}
+
+.terminal-body .wl-table th {
+  font-size: 9px;
+}
+
+.terminal-body .wl-cls {
+  font-size: 9px;
+}
+
+.terminal-body .wl-symbol-search .sym-search-input {
+  font-size: 11px;
+}
+
+.terminal-body .bb-fn-key-code {
+  font-size: 11px;
+}
+
+.terminal-body .bb-fn-key-label {
+  font-size: 9px;
+}
+
+.terminal-body .desk-col-watch {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.terminal-body .desk-col-watch .panel-head {
+  padding: 6px 8px;
+}
+
+@media (max-width: 1200px) {
+  .terminal-body .desk {
+    grid-template-columns: 228px minmax(0, 1fr) 240px;
+  }
+}

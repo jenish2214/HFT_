@@ -5,7 +5,6 @@ import SymbolSearchInput from "@/components/SymbolSearchInput";
 import {
   ASSET_CLASS_FILTERS,
   ASSET_CLASS_SHORT,
-  PRODUCT_NAME,
   type AssetClassFilter,
 } from "@/lib/orionAlpha";
 
@@ -51,7 +50,7 @@ export default function BloombergWatchlist({ rows, active, onSelect, loading = f
   return (
     <div className="panel bb-panel wl-panel">
       <div className="panel-head">
-        <span className="panel-title">MON — {PRODUCT_NAME} Monitor</span>
+        <span className="panel-title">MON — Monitor</span>
         <span className="bb-fn mono">{filtered.length}/{rows.length}</span>
       </div>
       <div className="wl-filter-bar">
@@ -63,7 +62,11 @@ export default function BloombergWatchlist({ rows, active, onSelect, loading = f
             onClick={() => setFilter(f.id)}
           >
             {f.label}
-            {f.id !== "all" && counts[f.id] ? ` ${counts[f.id]}` : f.id === "all" ? ` ${counts.all}` : ""}
+            {f.id === "all"
+              ? (counts.all > 0 ? ` ${counts.all}` : "")
+              : counts[f.id]
+                ? ` ${counts[f.id]}`
+                : ""}
           </button>
         ))}
       </div>
@@ -81,18 +84,17 @@ export default function BloombergWatchlist({ rows, active, onSelect, loading = f
         <table className="wl-table">
           <thead>
             <tr>
-              <th style={{ textAlign: "left" }}>Cls</th>
-              <th style={{ textAlign: "left" }}>Sym</th>
-              <th style={{ textAlign: "left" }}>Name</th>
-              <th>Last</th>
-              <th>%</th>
+              <th className="wl-th-cls">Cls</th>
+              <th className="wl-th-sym">Sym</th>
+              <th className="wl-th-last">Last</th>
+              <th className="wl-th-chg">Chg%</th>
             </tr>
           </thead>
           <tbody>
             {loading && rows.length === 0
               ? Array.from({ length: 8 }).map((_, i) => (
                 <tr key={`sk-${i}`} className="wl-skeleton-row">
-                  {[1, 2, 3, 4, 5].map((c) => (
+                  {[1, 2, 3, 4].map((c) => (
                     <td key={c}><span className="oa-skeleton wl-skeleton-cell" /></td>
                   ))}
                 </tr>
@@ -107,13 +109,12 @@ export default function BloombergWatchlist({ rows, active, onSelect, loading = f
                   key={r.symbol}
                   className={`wl-row ${isActive ? "wl-active" : ""}`}
                   onClick={() => onSelect(r.symbol)}
-                  title={[r.asset_class_label, r.sector].filter(Boolean).join(" · ")}
+                  title={[r.symbol, r.name, r.asset_class_label, r.sector].filter(Boolean).join(" · ")}
                 >
                   <td className="wl-cls mono">{cls}</td>
-                  <td className="wl-sym">{r.symbol}</td>
-                  <td className="wl-name">{r.name ?? r.symbol}</td>
-                  <td className="mono">{r.price > 0 ? r.price.toFixed(dec) : "—"}</td>
-                  <td className={`mono ${up ? "report-emphasis" : "report-dim"}`}>
+                  <td className="wl-sym mono">{r.symbol}</td>
+                  <td className="wl-last mono">{r.price > 0 ? r.price.toFixed(dec) : "—"}</td>
+                  <td className={`wl-chg mono ${up ? "report-emphasis" : "report-dim"}`}>
                     {r.price > 0 ? `${up ? "+" : ""}${r.change_pct.toFixed(2)}` : "—"}
                   </td>
                 </tr>
