@@ -6,6 +6,9 @@
 #   2. Open Blueprint: https://dashboard.render.com/blueprint/new?repo=https://github.com/jenish2214/HFT_
 #   3. Apply → wait ~10 min for Docker API, then dashboard
 #   4. URLs: orion-alpha-dashboard.onrender.com · orion-alpha-api.onrender.com
+#
+# Free-plan note: free web services cannot RECEIVE private-network traffic.
+# Dashboard → API must use the public https://…onrender.com URL (not hostport).
 services:
   - type: web
     name: orion-alpha-api
@@ -24,10 +27,7 @@ services:
       - key: HFT_ENGINE_PORT
         value: "9001"
       - key: ALLOWED_ORIGINS
-        fromService:
-          type: web
-          name: orion-alpha-dashboard
-          property: host
+        value: https://orion-alpha-dashboard.onrender.com
 
   - type: web
     name: orion-alpha-dashboard
@@ -45,9 +45,6 @@ services:
         value: "20"
       - key: NODE_ENV
         value: production
-      # Server-side /api proxy → internal API (Render private network)
+      # Public URL required on free plan (private hostport is not reachable inbound)
       - key: API_URL
-        fromService:
-          type: web
-          name: orion-alpha-api
-          property: hostport
+        value: https://orion-alpha-api.onrender.com

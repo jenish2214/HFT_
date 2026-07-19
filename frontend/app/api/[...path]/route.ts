@@ -29,8 +29,6 @@ function resolveBackend(): string {
   return `http://${raw.replace(/\/$/, "")}`;
 }
 
-const BACKEND = resolveBackend();
-
 function reject(message: string, status: number) {
   return NextResponse.json(
     { status: "error", message },
@@ -60,6 +58,21 @@ function setCached(key: string, body: string, status: number, contentType: strin
   researchCache.set(key, { body, status, contentType, ts: Date.now() });
 }
 
+async function fetchBackend(target: string, init: RequestInit, retries = 1): Promise<Response> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fetch(target, init);
+    } catch (err) {
+      lastErr = err;
+      if (attempt < retries) {
+        await new Promise((r) => setTimeout(r, 1200));
+      }
+    }
+  }
+  throw lastErr;
+}
+
 async function proxyRequest(req: NextRequest, pathSegments: string[]) {
   const path = pathSegments.join("/");
 
@@ -67,9 +80,10 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
     return reject("API path not allowed", 403);
   }
 
+  const backend = resolveBackend();
   const safeParams = sanitizeSearchParams(req.nextUrl.searchParams);
   const query = safeParams.toString();
-  const target = `${BACKEND}/${path}${query ? `?${query}` : ""}`;
+  const target = `${backend}/${path}${query ? `?${query}` : ""}`;
   const cacheKey = `${req.method}:${path}?${query}`;
 
   if (req.method === "GET" && isCacheableGet(path)) {
@@ -122,7 +136,7 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
       init.body = body;
     }
 
-    const res = await fetch(target, init);
+    const res = await fetchBackend(target, init, 1);
     const contentType = res.headers.get("content-type") || "application/json";
     const resBody = await res.text();
 
