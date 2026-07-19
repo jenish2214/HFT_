@@ -35,8 +35,9 @@ services:
     rootDir: frontend
     plan: free
     region: oregon
-    # Fail fast if Root Directory is wrong (must be `frontend`, not repo root)
-    buildCommand: test -f components/FullScreenChartView.tsx -a -f lib/orionAlpha.ts && npm ci && npm run build
+    # Fail fast if Root Directory is wrong (must be `frontend`, not repo root).
+    # --include=dev: NODE_ENV=production would otherwise skip typescript/@types needed by next build
+    buildCommand: test -f components/FullScreenChartView.tsx -a -f lib/orionAlpha.ts && npm ci --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /
     envVars:
